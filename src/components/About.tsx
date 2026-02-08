@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useRef } from 'react';
 import { useInView } from 'framer-motion';
-import { Target, Eye, Users, Linkedin } from 'lucide-react';
+import { Target, Telescope, Users, Linkedin } from 'lucide-react';
 
 const team = [
   {
@@ -9,6 +9,7 @@ const team = [
     role: 'President & Co-Founder',
     bio: 'Over 20 years in insurance adjusting with extensive NFIP certifications. Former Force Reconnaissance Marine with a unique blend of military leadership and deep industry knowledge.',
     initials: 'TI',
+    image: '/team/todd-isenburg.jpg',
     gradient: 'from-[var(--color-surf)] to-[var(--color-ocean)]',
   },
   {
@@ -16,6 +17,7 @@ const team = [
     role: 'CTO & Co-Founder',
     bio: 'Extensive experience from Amazon, Google, and Microsoft. Specializes in enterprise-scale systems and leads the technical vision for transforming flood claims management.',
     initials: 'JI',
+    image: '/team/jeremy-isenburg.jpg',
     gradient: 'from-[var(--color-gold)] to-[var(--color-gold-dark)]',
   },
   {
@@ -23,6 +25,7 @@ const team = [
     role: 'VP of Product Development',
     bio: '12 years as an insurance adjuster with natural talent for user experience design. Transforms real-world adjuster challenges into elegant solutions.',
     initials: 'KH',
+    image: '/team/keith-harris.jpg',
     gradient: 'from-[var(--color-success)] to-[var(--color-success-light)]',
   },
 ];
@@ -35,7 +38,7 @@ const values = [
       'Empower independent claim professionals with innovative technology to streamline the claims process, ensuring accurate documentation and faster claim resolution.',
   },
   {
-    icon: Eye,
+    icon: Telescope,
     title: 'Our Vision',
     description:
       'A world where the aftermath of flooding brings swift action and support. Where technology empowers adjusters to work efficiently, helping communities rebuild faster.',
@@ -63,9 +66,19 @@ function TeamCard({ member, index }: { member: (typeof team)[0]; index: number }
       <div className="glass rounded-2xl p-6 h-full transition-all duration-300 hover:-translate-y-1">
         {/* Avatar */}
         <div
-          className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${member.gradient} flex items-center justify-center text-2xl font-bold mb-4 transition-transform duration-300 group-hover:scale-105`}
+          className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${member.gradient} flex items-center justify-center text-2xl font-bold mb-4 transition-transform duration-300 group-hover:scale-105 overflow-hidden`}
         >
-          {member.initials}
+          <img
+            src={member.image}
+            alt={member.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to initials if image fails to load
+              const target = e.currentTarget;
+              target.style.display = 'none';
+              target.parentElement!.textContent = member.initials;
+            }}
+          />
         </div>
 
         {/* Info */}
