@@ -6,31 +6,31 @@ import { CheckCircle, ArrowRight } from 'lucide-react';
 const steps = [
   {
     number: '01',
-    title: 'Receive Assignment',
+    title: 'Import Claims',
     description:
-      'Claims sync automatically to your dashboard. View all details, location, and policyholder information instantly.',
-    features: ['Auto-sync from carriers', 'Map integration', 'Contact details ready'],
+      'Import claim information from various sources directly into your dashboard. Sync with your firm\'s CMS and view loss locations on a map.',
+    features: ['Import from multiple sources', 'Sync with firm CMS', 'Map-based claim locations'],
   },
   {
     number: '02',
     title: 'Conduct Inspection',
     description:
-      'Use room templates, voice notes, and smart photo capture. Everything organizes itself as you work.',
-    features: ['Voice-to-text notes', 'Auto-categorized photos', 'Sketch with camera'],
+      'Room-type templates make scope notes a breeze. Capture photos, record voice notes, and sketch floor plans using your camera.',
+    features: ['Room-type scope templates', 'Voice-recorded notes', 'Sketch with camera'],
   },
   {
     number: '03',
     title: 'Complete Forms',
     description:
-      'NFIP forms pre-fill with claim data. Collect signatures on-site from your device.',
-    features: ['Pre-filled forms', 'Digital signatures', 'Real-time validation'],
+      'All NFIP required forms are pre-filled with claim data. Adjusters and policyholders can sign forms on-site within the app.',
+    features: ['Pre-filled NFIP forms', 'On-site digital signatures', 'Field validation'],
   },
   {
     number: '04',
-    title: 'Submit & Close',
+    title: 'Report & Share',
     description:
-      'Generate compliant reports and submit directly. Track status through completion.',
-    features: ['One-click reports', 'Direct submission', 'Status tracking'],
+      'Upload reports to your CMS and share with desk adjusters and examiners. Works completely offline in the field.',
+    features: ['Upload reports to CMS', 'Share with desk adjusters', 'Works fully offline'],
   },
 ];
 
@@ -122,7 +122,7 @@ export default function HowItWorks() {
                   {/* Simplified workflow visualization */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="flex items-center gap-4">
-                      {['Assign', 'Inspect', 'Document', 'Submit'].map((label, i) => (
+                      {['Import', 'Inspect', 'Document', 'Report'].map((label, i) => (
                         <div key={label} className="flex items-center gap-4">
                           <div className="text-center">
                             <div
