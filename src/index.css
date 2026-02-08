@@ -184,3 +184,140 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+/* =============================================
+   HIGH-SUNLIGHT FIELD MODE (Light Theme)
+   Designed for outdoor use in direct sunlight.
+   Maximizes legibility on reflective screens.
+   ============================================= */
+
+[data-theme="light"] {
+  /* Primary surfaces */
+  --color-abyss: #FFFFFF;
+  --color-deep: #F4F7F9;
+  --color-ocean: #D1D9E0;
+  --color-wave: #B0BEC5;
+  --color-surf: #3A7CB8;
+  --color-foam: #2D5A87;
+
+  /* Text - near-black for maximum contrast */
+  --color-mist: #4A5568;
+  --color-pearl: #1A1C1E;
+
+  /* Accent - high-visibility orange (brand-consistent) */
+  --color-gold: #E67E22;
+  --color-gold-light: #F39C12;
+  --color-gold-dark: #D35400;
+
+  /* Status - darker green for outdoor visibility */
+  --color-success: #27AE60;
+  --color-success-light: #2ECC71;
+}
+
+/* Body: bump secondary text weight from 400→500 to combat glare washout */
+[data-theme="light"] body {
+  background-color: #FFFFFF;
+  color: #1A1C1E;
+  font-weight: 500;
+}
+
+/* Glass: light translucent surface with thin border instead of shadow */
+[data-theme="light"] .glass {
+  background: rgba(244, 247, 249, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid #D1D9E0;
+}
+
+/* Gradient mesh: subtle radials on white */
+[data-theme="light"] .gradient-mesh {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(58, 124, 184, 0.04), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(74, 144, 194, 0.04), transparent),
+    radial-gradient(ellipse 50% 30% at 60% 80%, rgba(230, 126, 34, 0.03), transparent),
+    #FFFFFF;
+}
+
+/* Disable glow shadows - they wash out in sunlight. Use borders instead. */
+[data-theme="light"] .glow-gold {
+  box-shadow: none;
+  border: 2px solid #D1D9E0;
+}
+
+[data-theme="light"] .glow-blue {
+  box-shadow: none;
+  border: 2px solid #D1D9E0;
+}
+
+/* Text gradient: darker tones for readability */
+[data-theme="light"] .text-gradient {
+  background: linear-gradient(135deg, var(--color-surf) 0%, var(--color-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Primary button: retain brand orange, reduce shadow */
+[data-theme="light"] .btn-primary {
+  background: linear-gradient(135deg, #E67E22 0%, #D35400 100%);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.2);
+}
+
+[data-theme="light"] .btn-primary:hover {
+  box-shadow: 0 4px 16px rgba(230, 126, 34, 0.3);
+}
+
+/* Secondary button: crisp border, dark text */
+[data-theme="light"] .btn-secondary {
+  border-color: #D1D9E0;
+  color: #1A1C1E;
+}
+
+[data-theme="light"] .btn-secondary:hover {
+  background: #F4F7F9;
+  border-color: #B0BEC5;
+}
+
+/* Scrollbar: light track */
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: #F4F7F9;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #B0BEC5;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: #8B9DAF;
+}
+
+/* Selection: orange on white */
+[data-theme="light"] ::selection {
+  background: #E67E22;
+  color: #FFFFFF;
+}
+
+/* Noise overlay: invisible in light mode */
+[data-theme="light"] .noise-overlay {
+  opacity: 0;
+}
+
+/* Form inputs: light background with border definition */
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background-color: #FFFFFF !important;
+  border-color: #D1D9E0 !important;
+  color: #1A1C1E !important;
+}
+
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
+  border-color: #3A7CB8 !important;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #B0BEC5 !important;
+}

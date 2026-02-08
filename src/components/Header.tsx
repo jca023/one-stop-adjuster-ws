@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 
 const navLinks = [
   { name: 'Features', href: '#features' },
@@ -13,6 +14,7 @@ const navLinks = [
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,7 +51,7 @@ export default function Header() {
             <motion.a
               key={link.name}
               href={link.href}
-              className="text-[var(--color-mist)] hover:text-white transition-colors relative group"
+              className="text-[var(--color-mist)] hover:text-[var(--color-pearl)] transition-colors relative group"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -67,11 +69,19 @@ export default function Header() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-[var(--color-mist)] hover:text-[var(--color-pearl)] hover:bg-[var(--color-ocean)]/30 transition-colors"
+            aria-label={theme === 'dark' ? 'Switch to field mode (light theme)' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Field Mode' : 'Dark Mode'}
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
           <a
             href="https://osa-client.web.app"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[var(--color-mist)] hover:text-white transition-colors"
+            className="text-[var(--color-mist)] hover:text-[var(--color-pearl)] transition-colors"
           >
             Sign In
           </a>
@@ -82,7 +92,7 @@ export default function Header() {
 
         {/* Mobile Menu Button */}
         <button
-          className="lg:hidden p-2 text-[var(--color-mist)] hover:text-white"
+          className="lg:hidden p-2 text-[var(--color-mist)] hover:text-[var(--color-pearl)]"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -104,18 +114,26 @@ export default function Header() {
                 <a
                   key={link.name}
                   href={link.href}
-                  className="text-[var(--color-mist)] hover:text-white transition-colors py-2"
+                  className="text-[var(--color-mist)] hover:text-[var(--color-pearl)] transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.name}
                 </a>
               ))}
               <div className="flex flex-col gap-3 pt-4 border-t border-[var(--color-wave)]">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-2 text-[var(--color-mist)] hover:text-[var(--color-pearl)] transition-colors py-2"
+                  aria-label={theme === 'dark' ? 'Switch to field mode' : 'Switch to dark mode'}
+                >
+                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  <span>{theme === 'dark' ? 'Field Mode' : 'Dark Mode'}</span>
+                </button>
                 <a
                   href="https://osa-client.web.app"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[var(--color-mist)] hover:text-white transition-colors py-2"
+                  className="text-[var(--color-mist)] hover:text-[var(--color-pearl)] transition-colors py-2"
                 >
                   Sign In
                 </a>

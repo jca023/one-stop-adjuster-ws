@@ -101,7 +101,7 @@ function FeatureCard({
 
         {/* Content */}
         <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-        <p className="text-[var(--color-mist)] text-sm leading-relaxed">
+        <p className="text-[var(--color-mist)] text-sm leading-[1.8]">
           {feature.description}
         </p>
 
@@ -135,8 +135,8 @@ export default function Features() {
             transition={{ duration: 0.5 }}
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
-              <Zap className="w-4 h-4 text-[var(--color-gold)]" />
-              <span className="text-sm text-[var(--color-mist)]">
+              <Zap className="w-4 h-4 text-[var(--color-gold-light)]" />
+              <span className="text-sm font-medium text-[var(--color-pearl)]">
                 Built for the field
               </span>
             </div>

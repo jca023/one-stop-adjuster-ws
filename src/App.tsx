@@ -1,3 +1,4 @@
+import { ThemeProvider } from './hooks/useTheme';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Features from './components/Features';
@@ -9,20 +10,22 @@ import Footer from './components/Footer';
 
 export default function App() {
   return (
-    <div className="min-h-screen">
-      {/* Noise overlay for texture */}
-      <div className="noise-overlay" />
+    <ThemeProvider>
+      <div className="min-h-screen">
+        {/* Noise overlay for texture */}
+        <div className="noise-overlay" />
 
-      <Header />
-      <main>
-        <Hero />
-        <Features />
-        <HowItWorks />
-        <Testimonials />
-        <About />
-        <Contact />
-      </main>
-      <Footer />
-    </div>
+        <Header />
+        <main>
+          <Hero />
+          <Features />
+          <HowItWorks />
+          <Testimonials />
+          <About />
+          <Contact />
+        </main>
+        <Footer />
+      </div>
+    </ThemeProvider>
   );
 }
