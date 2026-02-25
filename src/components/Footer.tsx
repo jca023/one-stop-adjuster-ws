@@ -1,32 +1,33 @@
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 interface FooterLink {
   name: string;
-  href: string;
+  to: string;
   external?: boolean;
 }
 
 const footerLinks: Record<string, FooterLink[]> = {
   Product: [
-    { name: 'Features', href: '#features' },
-    { name: 'How It Works', href: '#how-it-works' },
-    { name: 'Pricing', href: '#contact' },
-    { name: 'Client Portal', href: 'https://osa-client.web.app', external: true },
+    { name: 'Features', to: '/features' },
+    { name: 'Mobile App', to: '/mobile-app' },
+    { name: 'Resources', to: '/resources' },
+    { name: 'Client Portal', to: 'https://osa-client.web.app', external: true },
   ],
   Company: [
-    { name: 'About Us', href: '#about' },
-    { name: 'Testimonials', href: '#testimonials' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'About Us', to: '/about' },
+    { name: 'Testimonials', to: '/testimonials' },
+    { name: 'Contact', to: '/contact' },
   ],
   Legal: [
-    { name: 'Privacy Policy', href: '#' },
-    { name: 'Terms of Service', href: '#' },
-    { name: 'Security Guidelines', href: '#' },
-    { name: 'User Agreement', href: '#' },
+    { name: 'Privacy Policy', to: '/privacy-policy' },
+    { name: 'Terms of Service', to: '/terms' },
+    { name: 'Security Guidelines', to: '/security-guidelines' },
+    { name: 'Mobile App EULA', to: '/mobile-app-eula' },
   ],
 };
 
-export default function Footer() {
+export default function Footer(): React.JSX.Element {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -42,10 +43,12 @@ export default function Footer() {
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-surf)] to-[var(--color-ocean)] flex items-center justify-center">
-                <span className="text-white font-bold text-sm">OSA</span>
-              </div>
-              <span className="font-semibold text-lg">One Stop Adjuster</span>
+              <Link to="/" className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-surf)] to-[var(--color-ocean)] flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">OSA</span>
+                </div>
+                <span className="font-semibold text-lg">One Stop Adjuster</span>
+              </Link>
             </motion.div>
 
             <motion.p
@@ -95,14 +98,23 @@ export default function Footer() {
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.name}>
-                    <a
-                      href={link.href}
-                      target={link.external ? '_blank' : undefined}
-                      rel={link.external ? 'noopener noreferrer' : undefined}
-                      className="text-[var(--color-mist)] hover:text-white text-sm transition-colors"
-                    >
-                      {link.name}
-                    </a>
+                    {link.external ? (
+                      <a
+                        href={link.to}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--color-mist)] hover:text-white text-sm transition-colors"
+                      >
+                        {link.name}
+                      </a>
+                    ) : (
+                      <Link
+                        to={link.to}
+                        className="text-[var(--color-mist)] hover:text-white text-sm transition-colors"
+                      >
+                        {link.name}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
