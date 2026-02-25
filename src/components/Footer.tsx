@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import logoSvg from '../assets/logos/logo.svg';
 
 interface FooterLink {
   name: string;
@@ -37,16 +38,18 @@ export default function Footer(): React.JSX.Element {
           {/* Brand */}
           <div className="lg:col-span-2">
             <motion.div
-              className="flex items-center gap-3 mb-6"
+              className="mb-6"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
               <Link to="/" className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-surf)] to-[var(--color-ocean)] flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">OSA</span>
-                </div>
+                <img
+                  src={logoSvg}
+                  alt="One Stop Adjuster"
+                  className="w-10 h-10 rounded-full"
+                />
                 <span className="font-semibold text-lg">One Stop Adjuster</span>
               </Link>
             </motion.div>
