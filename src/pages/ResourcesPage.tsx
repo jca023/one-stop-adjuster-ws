@@ -10,9 +10,9 @@ const tabs = [
 ];
 
 const documents = [
-  { title: 'Getting Started Guide', description: 'Complete walkthrough for new users', type: 'PDF' },
-  { title: 'OSA Pocket Guide', description: 'Quick reference guide for field adjusters', type: 'PDF' },
-  { title: 'OSA Process', description: 'End-to-end claims process documentation', type: 'DOCX' },
+  { title: 'Getting Started Guide', description: 'Complete walkthrough for new users', type: 'PDF', url: 'https://www.one-stop-adjuster.com/s/Getting-Started-Guide-Verisk2.pdf' },
+  { title: 'OSA Pocket Guide', description: 'Quick reference guide for field adjusters', type: 'PDF', url: 'https://www.one-stop-adjuster.com/s/OSA-Pocket-Guide-9-25-2025.pdf' },
+  { title: 'OSA Process', description: 'End-to-end claims process documentation', type: 'DOCX', url: 'https://www.one-stop-adjuster.com/s/OSA-Process.docx' },
 ];
 
 const trainingVideos = [
@@ -99,14 +99,17 @@ export default function ResourcesPage(): React.JSX.Element {
             animate="visible"
           >
             {documents.map((doc) => (
-              <motion.div
+              <motion.a
                 key={doc.title}
                 variants={itemVariants}
-                className="glass rounded-xl p-5 flex items-center justify-between group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors"
+                href={doc.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="glass rounded-xl p-5 flex items-center justify-between group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center">
-                    <Download className="w-5 h-5 text-[var(--color-surf)]" />
+                  <div className="w-10 h-10 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors">
+                    <Download className="w-5 h-5 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
                   </div>
                   <div>
                     <h3 className="font-semibold">{doc.title}</h3>
@@ -114,7 +117,7 @@ export default function ResourcesPage(): React.JSX.Element {
                   </div>
                 </div>
                 <span className="text-xs text-[var(--color-wave)] bg-[var(--color-ocean)]/10 px-2 py-1 rounded">{doc.type}</span>
-              </motion.div>
+              </motion.a>
             ))}
           </motion.div>
         )}
