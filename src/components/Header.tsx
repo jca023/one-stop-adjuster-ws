@@ -140,7 +140,7 @@ export default function Header(): React.JSX.Element {
             <AnimatePresence>
               {isLoginOpen && (
                 <motion.div
-                  className="absolute right-0 top-full mt-2 w-64 glass rounded-xl overflow-hidden border border-[var(--color-wave)]/20"
+                  className="absolute right-0 top-full mt-2 w-64 rounded-xl overflow-hidden border border-[var(--color-wave)]/20 bg-[var(--color-deep)] shadow-xl shadow-black/30"
                   initial={{ opacity: 0, y: -8, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.95 }}
@@ -191,51 +191,93 @@ export default function Header(): React.JSX.Element {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu — slide-out drawer */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            className="xl:hidden absolute top-full left-0 right-0 glass"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <nav className="container py-6 flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.to}
-                  className="text-[var(--color-mist)] hover:text-[var(--color-pearl)] transition-colors py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.name}
-                </Link>
-              ))}
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="xl:hidden fixed inset-0 bg-black/50 z-40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
 
-              {/* Portal links in mobile menu */}
-              <div className="pt-4 border-t border-[var(--color-wave)]/30">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-wave)] mb-3">Portals</p>
+            {/* Drawer */}
+            <motion.div
+              className="xl:hidden fixed top-0 right-0 h-full w-[280px] max-w-[80vw] z-50 bg-[var(--color-deep)] shadow-2xl shadow-black/40 overflow-y-auto"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+            >
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between p-5 border-b border-[var(--color-wave)]/20">
+                <div className="flex items-center gap-2">
+                  <img src={logoSvg} alt="OSA" className="w-8 h-8 rounded-full" />
+                  <span className="text-[var(--color-pearl)] font-semibold text-sm">One Stop Adjuster</span>
+                </div>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1.5 rounded-lg text-[var(--color-mist)] hover:text-[var(--color-pearl)] hover:bg-[var(--color-ocean)]/20 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Nav Links */}
+              <nav className="p-5 flex flex-col gap-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.name}
+                    to={link.to}
+                    className={`px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                      location.pathname === link.to
+                        ? 'bg-[var(--color-gold)]/15 text-[var(--color-gold)] font-medium'
+                        : 'text-[var(--color-pearl)] hover:bg-[var(--color-ocean)]/20'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </nav>
+
+              {/* Portal Links */}
+              <div className="px-5 pb-5">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-wave)] mb-2 px-3">Portals</p>
                 {portalLinks.map((portal) => (
                   <Link
                     key={portal.name}
                     to={portal.to}
-                    className="flex items-center gap-3 text-[var(--color-mist)] hover:text-[var(--color-pearl)] transition-colors py-2"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[var(--color-pearl)] hover:bg-[var(--color-ocean)]/20 transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <portal.icon className="w-4 h-4 text-[var(--color-surf)]" />
-                    <span>{portal.name}</span>
+                    <div className="w-7 h-7 rounded-lg bg-[var(--color-ocean)]/30 flex items-center justify-center">
+                      <portal.icon className="w-3.5 h-3.5 text-[var(--color-surf)]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{portal.name}</p>
+                      <p className="text-[11px] text-[var(--color-mist)]">{portal.description}</p>
+                    </div>
                   </Link>
                 ))}
               </div>
 
-              <div className="pt-4 border-t border-[var(--color-wave)]/30">
-                <Link to="/contact" className="btn-primary text-center block" onClick={() => setIsMobileMenuOpen(false)}>
+              {/* CTA */}
+              <div className="px-5 pb-8">
+                <Link
+                  to="/contact"
+                  className="btn-primary text-center block text-sm py-2.5"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   Get Started
                 </Link>
               </div>
-            </nav>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </header>
