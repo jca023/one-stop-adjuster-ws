@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import {
   Smartphone, Star, Download, Users, LayoutDashboard, Map,
   Camera, ClipboardCheck, List, Package, FileText,
+  MapPin, FileCheck, ChevronRight, Wifi, Battery, Signal,
 } from 'lucide-react';
 
 const highlights = [
@@ -105,6 +106,167 @@ export default function MobileAppPage(): React.JSX.Element {
               <p className="text-[var(--color-mist)] text-sm">{item.description}</p>
             </motion.div>
           ))}
+        </motion.div>
+
+        {/* Phone Mockup + Download CTA */}
+        <motion.div
+          className="flex flex-col items-center mb-20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          {/* Phone Frame */}
+          <div className="relative w-[280px] h-[560px] rounded-[40px] border-[3px] border-[var(--color-wave)]/30 bg-[#0a1628] shadow-2xl shadow-black/40 overflow-hidden mb-8">
+            {/* Notch */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[28px] bg-black rounded-b-2xl z-20" />
+
+            {/* Status Bar */}
+            <div className="flex items-center justify-between px-6 pt-2 text-[10px] text-white/60 relative z-10">
+              <span>12:21</span>
+              <div className="flex items-center gap-1">
+                <Signal className="w-3 h-3" />
+                <Wifi className="w-3 h-3" />
+                <Battery className="w-3 h-3" />
+              </div>
+            </div>
+
+            {/* App Header */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#1a7a9b] to-[#0d4f6a] flex items-center justify-center">
+                <span className="text-[8px] font-bold text-white">OSA</span>
+              </div>
+              <span className="text-white text-sm font-semibold">One Stop Adjuster</span>
+            </div>
+
+            {/* Tab Bar */}
+            <div className="flex border-b border-white/10">
+              <div className="flex-1 py-2 text-center text-[11px] text-[#4db8d4] border-b-2 border-[#4db8d4] font-medium">Claims</div>
+              <div className="flex-1 py-2 text-center text-[11px] text-white/40">Map</div>
+              <div className="flex-1 py-2 text-center text-[11px] text-white/40">Photos</div>
+              <div className="flex-1 py-2 text-center text-[11px] text-white/40">Forms</div>
+            </div>
+
+            {/* Claims List */}
+            <div className="px-3 py-3 space-y-2.5 overflow-hidden">
+              {/* Claim Card 1 */}
+              <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-white text-xs font-semibold">CLM-2024-0847</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-medium">In Progress</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-white/50 text-[10px] mb-2">
+                  <MapPin className="w-3 h-3" />
+                  <span>Spanish Fort, AL</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-3 text-[10px]">
+                    <div className="flex items-center gap-1 text-white/40">
+                      <Camera className="w-3 h-3" />
+                      <span>24</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-white/40">
+                      <FileCheck className="w-3 h-3" />
+                      <span>3/5</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-white/30" />
+                </div>
+              </div>
+
+              {/* Claim Card 2 */}
+              <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-white text-xs font-semibold">CLM-2024-0832</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-medium">Inspection</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-white/50 text-[10px] mb-2">
+                  <MapPin className="w-3 h-3" />
+                  <span>Daphne, AL</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-3 text-[10px]">
+                    <div className="flex items-center gap-1 text-white/40">
+                      <Camera className="w-3 h-3" />
+                      <span>12</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-white/40">
+                      <FileCheck className="w-3 h-3" />
+                      <span>1/5</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-white/30" />
+                </div>
+              </div>
+
+              {/* Claim Card 3 */}
+              <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-white text-xs font-semibold">CLM-2024-0819</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium">Review</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-white/50 text-[10px] mb-2">
+                  <MapPin className="w-3 h-3" />
+                  <span>Fairhope, AL</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-3 text-[10px]">
+                    <div className="flex items-center gap-1 text-white/40">
+                      <Camera className="w-3 h-3" />
+                      <span>31</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-white/40">
+                      <FileCheck className="w-3 h-3" />
+                      <span>5/5</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-white/30" />
+                </div>
+              </div>
+
+              {/* Claim Card 4 - partially visible */}
+              <div className="bg-white/5 rounded-xl p-3 border border-white/10 opacity-60">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-white text-xs font-semibold">CLM-2024-0805</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-medium">In Progress</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-white/50 text-[10px]">
+                  <MapPin className="w-3 h-3" />
+                  <span>Mobile, AL</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Nav */}
+            <div className="absolute bottom-0 inset-x-0 flex justify-around py-2 bg-[#0a1628] border-t border-white/10">
+              <div className="flex flex-col items-center gap-0.5">
+                <LayoutDashboard className="w-4 h-4 text-[#4db8d4]" />
+                <span className="text-[8px] text-[#4db8d4]">Claims</span>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <Map className="w-4 h-4 text-white/30" />
+                <span className="text-[8px] text-white/30">Map</span>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <Camera className="w-4 h-4 text-white/30" />
+                <span className="text-[8px] text-white/30">Photos</span>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <FileText className="w-4 h-4 text-white/30" />
+                <span className="text-[8px] text-white/30">Forms</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Download Button */}
+          <a
+            href="https://apps.apple.com/us/app/one-stop-adjuster/id6449554280"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[var(--color-deep)] hover:bg-[var(--color-ocean)] text-white font-semibold transition-colors"
+          >
+            <Download className="w-5 h-5" />
+            Download for iOS
+          </a>
         </motion.div>
 
         {/* Feature Modules */}
