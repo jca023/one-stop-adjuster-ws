@@ -1,20 +1,45 @@
 import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 
 const navLinks = [
-  { name: 'Features', href: '#features' },
-  { name: 'How It Works', href: '#how-it-works' },
-  { name: 'Testimonials', href: '#testimonials' },
-  { name: 'About', href: '#about' },
-  { name: 'Contact', href: '#contact' },
+  { name: 'Features', to: '/features' },
+  { name: 'How It Works', to: '/#how-it-works' },
+  { name: 'Testimonials', to: '/testimonials' },
+  { name: 'About', to: '/about' },
+  { name: 'Contact', to: '/contact' },
 ];
 
-export default function Header() {
+function NavLink({ to, children, className, onClick }: {
+  to: string;
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}): React.JSX.Element {
+  const isHashLink = to.startsWith('/#');
+
+  if (isHashLink) {
+    return (
+      <a href={to.slice(1)} className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link to={to} className={className} onClick={onClick}>
+      {children}
+    </Link>
+  );
+}
+
+export default function Header(): React.JSX.Element {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +49,11 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -32,33 +62,36 @@ export default function Header() {
     >
       <div className="container flex items-center justify-between">
         {/* Logo */}
-        <motion.a
-          href="#"
-          className="flex items-center gap-3"
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-surf)] to-[var(--color-ocean)] flex items-center justify-center">
-            <span className="text-white font-bold text-sm">OSA</span>
-          </div>
-          <span className="font-semibold text-lg hidden sm:block">One Stop Adjuster</span>
-        </motion.a>
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-surf)] to-[var(--color-ocean)] flex items-center justify-center">
+              <span className="text-white font-bold text-sm">OSA</span>
+            </div>
+            <span className="font-semibold text-lg hidden sm:block">One Stop Adjuster</span>
+          </Link>
+        </motion.div>
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-8">
           {navLinks.map((link, index) => (
-            <motion.a
+            <motion.div
               key={link.name}
-              href={link.href}
-              className="text-[var(--color-mist)] hover:text-[var(--color-pearl)] transition-colors relative group"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              {link.name}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[var(--color-gold)] transition-all duration-300 group-hover:w-full" />
-            </motion.a>
+              <NavLink
+                to={link.to}
+                className="text-[var(--color-mist)] hover:text-[var(--color-pearl)] transition-colors relative group"
+              >
+                {link.name}
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[var(--color-gold)] transition-all duration-300 group-hover:w-full" />
+              </NavLink>
+            </motion.div>
           ))}
         </nav>
 
@@ -85,9 +118,9 @@ export default function Header() {
           >
             Sign In
           </a>
-          <a href="#contact" className="btn-primary text-sm py-2.5 px-5">
+          <Link to="/contact" className="btn-primary text-sm py-2.5 px-5">
             Get Started
-          </a>
+          </Link>
         </motion.div>
 
         {/* Mobile Menu Button */}
@@ -111,14 +144,14 @@ export default function Header() {
           >
             <nav className="container py-6 flex flex-col gap-4">
               {navLinks.map((link) => (
-                <a
+                <NavLink
                   key={link.name}
-                  href={link.href}
+                  to={link.to}
                   className="text-[var(--color-mist)] hover:text-[var(--color-pearl)] transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.name}
-                </a>
+                </NavLink>
               ))}
               <div className="flex flex-col gap-3 pt-4 border-t border-[var(--color-wave)]">
                 <button
@@ -137,9 +170,9 @@ export default function Header() {
                 >
                   Sign In
                 </a>
-                <a href="#contact" className="btn-primary text-center">
+                <Link to="/contact" className="btn-primary text-center" onClick={() => setIsMobileMenuOpen(false)}>
                   Get Started
-                </a>
+                </Link>
               </div>
             </nav>
           </motion.div>
