@@ -155,7 +155,7 @@ export default function AboutPage(): React.JSX.Element {
               variants={itemVariants}
               className="glass rounded-2xl overflow-hidden group"
             >
-              <div className="aspect-[4/3] bg-[var(--color-ocean)]/20 overflow-hidden">
+              <div className="aspect-square bg-[var(--color-ocean)]/20 overflow-hidden">
                 <img
                   src={member.photo}
                   alt={member.name}

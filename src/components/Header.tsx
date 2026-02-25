@@ -173,13 +173,22 @@ export default function Header(): React.JSX.Element {
           </Link>
         </motion.div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="xl:hidden p-2 text-[var(--color-mist)] hover:text-[var(--color-pearl)]"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* Mobile: theme toggle + menu button */}
+        <div className="xl:hidden flex items-center gap-1">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-[var(--color-mist)] hover:text-[var(--color-pearl)] hover:bg-[var(--color-ocean)]/30 transition-colors"
+            aria-label={theme === 'dark' ? 'Switch to field mode (light theme)' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+          <button
+            className="p-2 text-[var(--color-mist)] hover:text-[var(--color-pearl)]"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -220,16 +229,8 @@ export default function Header(): React.JSX.Element {
                 ))}
               </div>
 
-              <div className="flex flex-col gap-3 pt-4 border-t border-[var(--color-wave)]/30">
-                <button
-                  onClick={toggleTheme}
-                  className="flex items-center gap-2 text-[var(--color-mist)] hover:text-[var(--color-pearl)] transition-colors py-2"
-                  aria-label={theme === 'dark' ? 'Switch to field mode' : 'Switch to dark mode'}
-                >
-                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                  <span>{theme === 'dark' ? 'Field Mode' : 'Dark Mode'}</span>
-                </button>
-                <Link to="/contact" className="btn-primary text-center" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="pt-4 border-t border-[var(--color-wave)]/30">
+                <Link to="/contact" className="btn-primary text-center block" onClick={() => setIsMobileMenuOpen(false)}>
                   Get Started
                 </Link>
               </div>
