@@ -18,12 +18,12 @@ export interface Post {
   updated_at: string;
 }
 
-export interface Attaboy {
+export interface Testimonial {
   id: string;
-  recipient: string;
-  author: string;
-  message: string;
-  category: string;
+  name: string;
+  role: string;
+  quote: string;
   rating: number;
+  status: string;
   created_at: string;
 }

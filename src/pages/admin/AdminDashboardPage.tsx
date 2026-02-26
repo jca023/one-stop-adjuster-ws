@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Award, ArrowRight } from 'lucide-react';
+import { FileText, Star, ArrowRight, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
 export default function AdminDashboardPage(): React.JSX.Element {
   const [postCount, setPostCount] = useState<number | null>(null);
-  const [attaboyCount, setAttaboyCount] = useState<number | null>(null);
+  const [testimonialCount, setTestimonialCount] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchCounts(): Promise<void> {
-      const [postsRes, attaboysRes] = await Promise.all([
+      const [postsRes, testimonialsRes] = await Promise.all([
         supabase.from('posts').select('id', { count: 'exact', head: true }),
-        supabase.from('attaboys').select('id', { count: 'exact', head: true }),
+        supabase.from('testimonials').select('id', { count: 'exact', head: true }),
       ]);
       setPostCount(postsRes.count ?? 0);
-      setAttaboyCount(attaboysRes.count ?? 0);
+      setTestimonialCount(testimonialsRes.count ?? 0);
     }
     fetchCounts();
   }, []);
@@ -27,13 +27,15 @@ export default function AdminDashboardPage(): React.JSX.Element {
       icon: FileText,
       href: '/admin/blog',
       description: 'Write, edit, and publish blog posts',
+      publicPath: '/blog',
     },
     {
-      title: 'Attaboys',
-      count: attaboyCount,
-      icon: Award,
-      href: '/admin/attaboys',
-      description: 'Recognize team members for great work',
+      title: 'Testimonials',
+      count: testimonialCount,
+      icon: Star,
+      href: '/admin/testimonials',
+      description: 'Manage customer testimonials and ratings',
+      publicPath: '/testimonials',
     },
   ];
 
@@ -47,7 +49,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
           className="mb-12"
         >
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            <span className="text-gradient">Admin Dashboard</span>
+            <span className="text-gradient">Editor Dashboard</span>
           </h1>
           <p className="text-[var(--color-mist)]">
             Manage your site content
@@ -74,7 +76,12 @@ export default function AdminDashboardPage(): React.JSX.Element {
                 </div>
 
                 <h2 className="text-lg font-semibold mb-1">{card.title}</h2>
-                <p className="text-[var(--color-mist)] text-sm mb-4">{card.description}</p>
+                <p className="text-[var(--color-mist)] text-sm mb-3">{card.description}</p>
+
+                <div className="flex items-center gap-2 text-xs text-[var(--color-wave)] mb-4">
+                  <ExternalLink className="w-3 h-3" />
+                  <span>Displays at <span className="text-[var(--color-surf)]">{card.publicPath}</span></span>
+                </div>
 
                 <div className="mt-auto">
                   <span className="text-2xl font-bold text-[var(--color-gold)]">
@@ -93,7 +100,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
           transition={{ delay: 0.5 }}
           className="text-center text-[var(--color-wave)] text-xs mt-12"
         >
-          Admin access will be gated behind authentication when the site goes live.
+          Editor access will be gated behind authentication when the site goes live.
         </motion.p>
       </div>
     </section>
