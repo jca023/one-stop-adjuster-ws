@@ -11,6 +11,7 @@ const navLinks = [
   { name: 'Features', to: '/features' },
   { name: 'Mobile App', to: '/mobile-app' },
   { name: 'Resources', to: '/resources' },
+  { name: 'Import Form', to: '/import-form' },
   { name: 'Contact', to: '/contact' },
   { name: 'Editor', to: '/admin' },
 ];

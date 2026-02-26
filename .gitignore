@@ -33,3 +33,4 @@ dist-ssr
 # Screenshots from browser testing
 *.png
 !public/team/*.png
+!public/mockups/*.png
