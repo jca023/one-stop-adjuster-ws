@@ -85,7 +85,7 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <a href="#contact" className="btn-primary inline-flex items-center justify-center gap-2">
+              <a href="#demo-form" className="btn-primary inline-flex items-center justify-center gap-2">
                 Request a Demo
                 <ArrowRight size={18} />
               </a>
