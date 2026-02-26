@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Sun, Moon, ChevronDown, Users, Briefcase, UserCheck } from 'lucide-react';
+import { Menu, X, Sun, Moon, ChevronDown, Users, Briefcase, UserCheck, Settings } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import logoSvg from '../assets/logos/logo.svg';
 
@@ -13,7 +13,6 @@ const navLinks = [
   { name: 'Resources', to: '/resources' },
   { name: 'Import Form', to: '/import-form' },
   { name: 'Contact', to: '/contact' },
-  { name: 'Editor', to: '/admin' },
 ];
 
 const portalLinks = [
@@ -34,6 +33,12 @@ const portalLinks = [
     description: 'Field tools & inspections',
     to: '/portal/adjuster',
     icon: UserCheck,
+  },
+  {
+    name: 'Editor',
+    description: 'Manage blog & testimonials',
+    to: '/admin',
+    icon: Settings,
   },
 ];
 
