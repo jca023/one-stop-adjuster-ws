@@ -1,8 +1,5 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Award } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import type { Attaboy } from '../lib/supabase';
+import { Star } from 'lucide-react';
 
 const testimonials = [
   {
@@ -36,18 +33,6 @@ const cardVariants = {
 };
 
 export default function TestimonialsPage(): React.JSX.Element {
-  const [attaboys, setAttaboys] = useState<Attaboy[]>([]);
-
-  useEffect(() => {
-    async function fetchAttaboys(): Promise<void> {
-      const { data } = await supabase
-        .from('attaboys')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (data) setAttaboys(data);
-    }
-    fetchAttaboys();
-  }, []);
 
   return (
     <section className="pt-32 pb-20">
@@ -98,62 +83,6 @@ export default function TestimonialsPage(): React.JSX.Element {
             </motion.div>
           ))}
         </motion.div>
-
-        {/* Attaboys Section */}
-        {attaboys.length > 0 && (
-          <>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="text-center mt-24 mb-12"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                <span className="text-gradient">Team Attaboys</span>
-              </h2>
-              <p className="text-[var(--color-mist)] text-lg max-w-2xl mx-auto">
-                Recognizing outstanding performance from our team in the field
-              </p>
-            </motion.div>
-
-            <motion.div
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              {attaboys.map((ab) => (
-                <motion.div
-                  key={ab.id}
-                  variants={cardVariants}
-                  className="glass rounded-2xl p-6 flex flex-col"
-                >
-                  {/* Stars */}
-                  <div className="flex gap-1 mb-3">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className={`w-4 h-4 ${i < ab.rating ? 'fill-[var(--color-gold)] text-[var(--color-gold)]' : 'text-[var(--color-ocean)]'}`} />
-                    ))}
-                  </div>
-
-                  <div className="flex items-center gap-2 mb-2">
-                    <Award className="w-4 h-4 text-[var(--color-gold)]" />
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--color-gold)]/20 text-[var(--color-gold)]">
-                      {ab.category}
-                    </span>
-                  </div>
-
-                  <h3 className="font-semibold text-lg mb-2">{ab.recipient}</h3>
-
-                  <p className="text-[var(--color-mist)] text-sm leading-relaxed flex-1 mb-4">
-                    "{ab.message}"
-                  </p>
-
-                  <p className="text-[var(--color-wave)] text-sm">— {ab.author}</p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </>
-        )}
       </div>
     </section>
   );
