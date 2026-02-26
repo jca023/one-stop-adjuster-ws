@@ -18,6 +18,7 @@ import TermsPage from './pages/TermsPage';
 import SecurityPage from './pages/SecurityPage';
 import EulaPage from './pages/EulaPage';
 import BlogPage from './pages/BlogPage';
+import ImportFormPage from './pages/ImportFormPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminBlogPage from './pages/admin/AdminBlogPage';
 import AdminAttaboyPage from './pages/admin/AdminAttaboyPage';
@@ -46,6 +47,7 @@ export default function App(): React.JSX.Element {
             <Route path="/security-guidelines" element={<SecurityPage />} />
             <Route path="/mobile-app-eula" element={<EulaPage />} />
             <Route path="/blog" element={<BlogPage />} />
+            <Route path="/import-form" element={<ImportFormPage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/admin/blog" element={<AdminBlogPage />} />
             <Route path="/admin/attaboys" element={<AdminAttaboyPage />} />

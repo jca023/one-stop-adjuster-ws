@@ -25,6 +25,7 @@ const footerLinks: Record<string, FooterLink[]> = {
     { name: 'Features', to: '/features' },
     { name: 'Mobile App', to: '/mobile-app' },
     { name: 'Resources', to: '/resources' },
+    { name: 'Import Form', to: '/import-form' },
     { name: 'Client Portal', to: 'https://osa-client.web.app', external: true },
   ],
   Company: [
