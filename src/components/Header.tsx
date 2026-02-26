@@ -70,6 +70,7 @@ export default function Header(): React.JSX.Element {
   }, []);
 
   return (
+    <>
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled ? 'glass py-2' : 'py-4'
@@ -192,13 +193,15 @@ export default function Header(): React.JSX.Element {
         </div>
       </div>
 
-      {/* Mobile Menu — slide-out drawer */}
+    </header>
+
+      {/* Mobile Menu — slide-out drawer (outside header to avoid backdrop-filter stacking context) */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
             {/* Backdrop */}
             <motion.div
-              className="xl:hidden fixed inset-0 bg-black/50 z-40"
+              className="xl:hidden fixed inset-0 bg-black/50 z-[60]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -208,7 +211,7 @@ export default function Header(): React.JSX.Element {
 
             {/* Drawer */}
             <motion.div
-              className="xl:hidden fixed top-0 right-0 h-full w-[280px] max-w-[80vw] z-50 bg-[var(--color-deep)] shadow-2xl shadow-black/40 overflow-y-auto"
+              className="xl:hidden fixed top-0 right-0 h-full w-[280px] max-w-[80vw] z-[70] bg-[var(--color-deep)] shadow-2xl shadow-black/40 overflow-y-auto"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -281,6 +284,6 @@ export default function Header(): React.JSX.Element {
           </>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }
