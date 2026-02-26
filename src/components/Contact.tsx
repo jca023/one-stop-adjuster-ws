@@ -118,7 +118,8 @@ export default function Contact() {
 
           {/* Right - Form */}
           <motion.div
-            className="glass rounded-2xl p-8"
+            id="demo-form"
+            className="glass rounded-2xl p-8 scroll-mt-24"
             initial={{ opacity: 0, x: 40 }}
             animate={isHeaderInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 40 }}
             transition={{ duration: 0.6, delay: 0.2 }}
