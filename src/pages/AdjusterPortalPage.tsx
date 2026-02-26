@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import {
   UserCheck, ClipboardList, MapPin, FileBarChart, BarChart3,
   LayoutDashboard, CheckSquare, MessageSquare, Calendar, Clock,
-  AlertCircle, FileText, TrendingUp, Inbox, Users,
+  AlertCircle, TrendingUp, Inbox,
 } from 'lucide-react';
 
 const features = [

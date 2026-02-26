@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import {
   Briefcase, CheckCircle, Shield, FileText, MessageSquare,
   LayoutDashboard, Users, Camera, Image, Package, Clock,
-  AlertTriangle, Upload, CalendarCheck, CheckCircle2, ArrowRight,
+  AlertTriangle, Upload, CalendarCheck, CheckCircle2,
 } from 'lucide-react';
 
 const features = [
