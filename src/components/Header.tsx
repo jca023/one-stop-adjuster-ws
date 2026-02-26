@@ -12,6 +12,7 @@ const navLinks = [
   { name: 'Mobile App', to: '/mobile-app' },
   { name: 'Resources', to: '/resources' },
   { name: 'Contact', to: '/contact' },
+  { name: 'Editor', to: '/admin' },
 ];
 
 const portalLinks = [

@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Video, FileText, HelpCircle, ExternalLink, Download } from 'lucide-react';
+import { BookOpen, Video, FileText, HelpCircle, ExternalLink, Download, ArrowRight, Clock, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import type { Post } from '../lib/supabase';
 
 const tabs = [
   { id: 'docs', label: 'Documentation', icon: BookOpen },
@@ -54,6 +57,20 @@ const itemVariants = {
 
 export default function ResourcesPage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState('docs');
+  const [recentPosts, setRecentPosts] = useState<Post[]>([]);
+
+  useEffect(() => {
+    async function fetchRecentPosts(): Promise<void> {
+      const { data } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(3);
+      if (data) setRecentPosts(data);
+    }
+    fetchRecentPosts();
+  }, []);
 
   return (
     <section className="pt-32 pb-20">
@@ -164,13 +181,61 @@ export default function ResourcesPage(): React.JSX.Element {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="glass rounded-2xl p-8 md:p-12 text-center max-w-2xl mx-auto"
+            className="max-w-3xl mx-auto"
           >
-            <FileText className="w-12 h-12 text-[var(--color-wave)] mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Blog & Library</h3>
-            <p className="text-[var(--color-mist)]">
-              Articles, guides, and industry insights coming soon. Stay tuned for expert content from the OSA team.
-            </p>
+            <div className="text-center mb-8">
+              <h3 className="text-xl font-semibold mb-2">Blog & Library</h3>
+              <p className="text-[var(--color-mist)]">
+                Latest articles from the OSA team
+              </p>
+            </div>
+
+            {recentPosts.length > 0 ? (
+              <div className="space-y-4 mb-8">
+                {recentPosts.map((post) => (
+                  <Link
+                    key={post.id}
+                    to="/blog"
+                    className="glass rounded-xl p-5 flex items-center justify-between group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors block"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--color-gold)]/20 text-[var(--color-gold)]">
+                          {post.category}
+                        </span>
+                        {post.read_time && (
+                          <span className="flex items-center gap-1 text-xs text-[var(--color-wave)]">
+                            <Clock className="w-3 h-3" />
+                            {post.read_time}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-semibold group-hover:text-[var(--color-gold)] transition-colors">{post.title}</h4>
+                      {post.excerpt && (
+                        <p className="text-[var(--color-mist)] text-sm mt-1 line-clamp-1">{post.excerpt}</p>
+                      )}
+                      <span className="flex items-center gap-1 text-xs text-[var(--color-wave)] mt-2">
+                        <User className="w-3 h-3" />
+                        {post.author}
+                      </span>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[var(--color-wave)] group-hover:text-[var(--color-gold)] transition-colors shrink-0 ml-4" />
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="glass rounded-2xl p-8 text-center mb-8">
+                <FileText className="w-12 h-12 text-[var(--color-wave)] mx-auto mb-4" />
+                <p className="text-[var(--color-mist)]">Blog posts coming soon.</p>
+              </div>
+            )}
+
+            <div className="text-center">
+              <Link to="/blog" className="btn-primary inline-flex items-center gap-2">
+                View All Posts
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </motion.div>
         )}
 
