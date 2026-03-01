@@ -30,7 +30,11 @@ dist-ssr
 # Claude Code
 .claude/
 
+# Supabase temp files
+supabase/.temp/
+
 # Screenshots from browser testing
 *.png
 !public/team/*.png
 !public/mockups/*.png
+!public/screenshots/*.jpg

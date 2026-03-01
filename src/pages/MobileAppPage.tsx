@@ -269,6 +269,36 @@ export default function MobileAppPage(): React.JSX.Element {
           </a>
         </motion.div>
 
+        {/* App Store Screenshots */}
+        <motion.div
+          className="mb-20"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">
+            <span className="text-gradient">See It in Action</span>
+          </h2>
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+            {[1, 2, 3, 4, 5, 6].map((num) => (
+              <div
+                key={num}
+                className="flex-none w-[200px] sm:w-[240px] md:w-[280px] snap-center"
+              >
+                <div className="rounded-[2rem] overflow-hidden border-2 border-[var(--color-wave)]/20 shadow-xl shadow-black/30">
+                  <img
+                    src={`/screenshots/app-screenshot-${num}.jpg`}
+                    alt={`One Stop Adjuster app screenshot ${num}`}
+                    className="w-full h-auto"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
         {/* Feature Modules */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
