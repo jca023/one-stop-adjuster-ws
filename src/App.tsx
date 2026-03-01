@@ -13,10 +13,7 @@ import ContactPage from './pages/ContactPage';
 import ClientPortalPage from './pages/ClientPortalPage';
 import PolicyholderPortalPage from './pages/PolicyholderPortalPage';
 import AdjusterPortalPage from './pages/AdjusterPortalPage';
-import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
-import TermsPage from './pages/TermsPage';
-import SecurityPage from './pages/SecurityPage';
-import EulaPage from './pages/EulaPage';
+import LegalRedirect from './components/LegalRedirect';
 import BlogPage from './pages/BlogPage';
 import ImportFormPage from './pages/ImportFormPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
@@ -42,10 +39,10 @@ export default function App(): React.JSX.Element {
             <Route path="/portal/client" element={<ClientPortalPage />} />
             <Route path="/portal/policyholder" element={<PolicyholderPortalPage />} />
             <Route path="/portal/adjuster" element={<AdjusterPortalPage />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/security-guidelines" element={<SecurityPage />} />
-            <Route path="/mobile-app-eula" element={<EulaPage />} />
+            <Route path="/privacy-policy" element={<LegalRedirect pdf="/legal/privacy-policy.pdf" />} />
+            <Route path="/terms" element={<LegalRedirect pdf="/legal/terms-of-service.pdf" />} />
+            <Route path="/security-guidelines" element={<LegalRedirect pdf="/legal/security-guidelines.pdf" />} />
+            <Route path="/mobile-app-eula" element={<LegalRedirect pdf="/legal/mobile-app-eula.pdf" />} />
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/import-form" element={<ImportFormPage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />

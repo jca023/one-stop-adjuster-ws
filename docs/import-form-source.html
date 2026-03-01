@@ -1,0 +1,896 @@
+<!--
+  Import Form - extracted from https://www.one-stop-adjuster.com/v2import-form
+  Original Squarespace "Advanced HTML" block by Todd's son
+  Extracted 2026-03-01 for conversion to React component
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    padding: 10% 20% 1% 20%;
+}
+.section {
+    background: white;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+h1, h2 {
+    color: #333;
+}
+h1 {
+    font-size: 24px;
+    text-align: center;
+}
+h2 {
+    font-size: 20px;
+    border-bottom: 2px solid rgb(22, 78, 115);
+    padding-bottom: 10px;
+}
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+label {
+    flex-basis: 45%;
+    margin-bottom: 7px;
+}
+input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+textarea {
+    height: 200px;
+}
+button {
+    display: block;
+    justify-content: center;
+    width: 100%;
+    padding: 15px;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 18px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    transition: background-color 0.3s;
+}
+button:hover {
+    background-color: #45a049;
+}
+.row .checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    white-space: nowrap;
+}
+.row label input[type="checkbox"] {
+    display: flex;
+    margin-left: 10px;
+    margin-right: 20px;
+}
+.row label input[type="radio"] {
+    display: inline-block;
+    margin-left: 10px;
+    margin-right: 20px;
+    width: 5%;
+}
+.required-star {
+    color: red;
+    margin-right: 4px;
+}
+fieldset {
+    border: 1px solid #ccc;
+    margin-top: 10px;
+    width: 43%;
+}
+legend {
+    padding: 0 10px;
+    color: #333;
+}
+.testing {
+    display: inline-block;
+}
+</style>
+</head>
+<body>
+
+<h1>JSON Data Form OSA</h1>
+
+<form id="dataForm">
+    <!-- Adjuster Information -->
+    <div class="section">
+        <h2>Adjuster Information</h2>
+        <div class="row">
+            <label>Adjuster Name:<input type="text" id="adjusterName" name="adjusterName"></label>
+            <label>Adjuster FCN Number:<span class="required-star">*</span><input type="text" id="adjusterFcnNumber" name="adjusterFcnNumber" required></label>
+            <label>Adjuster Phone Number:<input type="text" id="adjusterPhoneNumber" name="adjusterPhoneNumber"></label>
+            <label>Adjuster Email:<input type="email" id="firm_email" name="firm_email"></label>
+        </div>
+    </div>
+
+    <!-- Agency Information -->
+    <div class="section">
+        <h2>Agency Information</h2>
+        <div class="row">
+            <label>Agent Name:<input type="text" id="agentName" name="agentName"></label>
+            <label>Agent Cell Number:<input type="text" id="agentCellNumber" name="agentCellNumber"></label>
+            <label>Agent Email:<input type="email" id="agentEmail" name="agentEmail"></label>
+            <label>Mortgage Company:<input type="text" id="mortgageCompany" name="mortgageCompany"></label>
+        </div>
+    </div>
+
+    <!-- Policy Information -->
+    <div class="section">
+        <h2>Policy Information</h2>
+        <div class="row">
+            <label>Policyholder Name:<span class="required-star">*</span><input type="text" id="policyholderName" name="policyholderName" required></label>
+            <label>Policyholder Email:<input type="email" id="policyholderEmail" name="policyholderEmail"></label>
+            <label>Primary Phone Number:<input type="text" id="phoneNumberPrimary" name="phoneNumberPrimary"></label>
+            <label>Secondary Phone Number:<input type="text" id="phoneNumberSecondary" name="phoneNumberSecondary"></label>
+            <label>Policy Number:<span class="required-star">*</span><input type="text" id="policyNumber" name="policyNumber" required></label>
+            <label>Claim Number:<span class="required-star">*</span><input type="text" id="claimNumber" name="claimNumber" required></label>
+            <label>Policy Start Date:<input type="date" id="policyStartDate" name="policyStartDate"></label>
+            <label>Policy End Date:<input type="date" id="policyEndDate" name="policyEndDate"></label>
+        </div>
+    </div>
+
+    <!-- Insurer Information -->
+    <div class="section">
+        <h2>Insurer and Adjusting Firm Information</h2>
+        <div class="row">
+            <label>EDN:<input type="text" id="edn" name="edn"></label>
+        </div>
+        <div class="row">
+            <label>Insurer:<input type="text" id="insurer" name="insurer"></label>
+        </div>
+        <div class="row">
+            <label>Insurer Street:<input type="text" id="insurer_street" name="insurer_street"></label>
+            <label>Insurer City:<input type="text" id="insurer_city" name="insurer_city"></label>
+            <label>Insurer State:<input type="text" id="insurer_state" name="insurer_state"></label>
+            <label>Insurer Zip:<input type="text" id="insurer_zip" name="insurer_zip"></label>
+        </div>
+        <div class="row">
+            <label>Adjusting Firm:<input type="text" id="adjustingFirm" name="adjustingFirm"></label>
+            <label>File Number:<span class="required-star">*</span><input type="text" id="adjusterFileNumber" name="adjusterFileNumber" required></label>
+        </div>
+        <div class="row">
+            <label>Firm Street:<input type="text" id="firm_street" name="firm_street"></label>
+            <label>Firm City:<input type="text" id="firm_city" name="firm_city"></label>
+            <label>Firm State:<input type="text" id="firm_state" name="firm_state"></label>
+            <label>Firm Zip:<input type="text" id="firm_zip" name="firm_zip"></label>
+            <label>Firm Phone Number:<input type="text" id="firm_phone_number" name="firm_phone_number"></label>
+        </div>
+    </div>
+
+    <!-- Policyholder Loss Address -->
+    <div class="section">
+        <h2>Policyholder Loss Address</h2>
+        <div class="row">
+            <label>Loss Street:<input type="text" id="loss_street" name="loss_street"></label>
+            <label>Loss City:<input type="text" id="loss_city" name="loss_city"></label>
+            <label>Loss State:<input type="text" id="loss_state" name="loss_state"></label>
+            <label>Loss Zip:<input type="text" id="loss_zip" name="loss_zip"></label>
+        </div>
+    </div>
+
+    <!-- Policyholder Mailing Address -->
+    <div class="section">
+        <h2>Policyholder Mailing Address</h2>
+        <div class="row">
+            <label class="checkbox">Same as Loss Address<input type="checkbox" id="sameAsLossAddress" onchange="toggleAddressFields()"></label>
+        </div>
+        <div class="row">
+            <label>Mailing Street:<input type="text" id="mailing_street" name="mailing_street"></label>
+            <label>Mailing City:<input type="text" id="mailing_city" name="mailing_city"></label>
+            <label>Mailing State:<input type="text" id="mailing_state" name="mailing_state"></label>
+            <label>Mailing Zip:<input type="text" id="mailing_zip" name="mailing_zip"></label>
+        </div>
+    </div>
+
+    <!-- Claim Information -->
+    <div class="section">
+        <h2>Claim and Property Details</h2>
+        <div class="row">
+            <label>Date of Loss:<span class="required-star">*</span><input type="date" id="dateOfLoss" name="dateOfLoss" required></label>
+            <label>Date of Assignment:<span class="required-star">*</span><input type="date" id="dateOfAssignment" name="dateOfAssignment" required></label>
+            <label>Date of Contact:<input type="date" id="dateOfContact" name="dateOfContact"></label>
+            <label>Date of Inspection:<input type="date" id="dateOfInspection" name="dateOfInspection"></label>
+        </div>
+    </div>
+
+    <!-- Coverage Details -->
+    <div class="section">
+        <h2>Coverage Details</h2>
+        <div class="row">
+            <label>Coverage A Building:<input type="number" id="coverageABuilding" name="coverageABuilding"></label>
+            <label>Deductible A Building:<input type="number" id="deductibleABuilding" name="deductibleABuilding"></label>
+            <label>Coverage B Personal Property:<input type="number" id="coverageBPersonalProperty" name="coverageBPersonalProperty"></label>
+            <label>Deductible B Personal Property:<input type="number" id="deductibleBPersonalProperty" name="deductibleBPersonalProperty"></label>
+            <label>Coverage Other Structures:<input type="number" id="coverageOtherStructures" name="coverageOtherStructures"></label>
+            <label>Deductible Other Structure:<input type="number" id="deductibleOtherStructure" name="deductibleOtherStructure"></label>
+        </div>
+    </div>
+
+    <!-- Rating Information -->
+    <div class="section">
+        <h2>Rating Information</h2>
+        <div class="row">
+            <label>Risk Method:<input type="text" id="risk_method" name="risk_method"></label>
+            <label>Policy Form:
+                <select id="sfip_policy_type" name="sfip_policy_type">
+                    <option value="Dwelling Form">Dwelling Form</option>
+                    <option value="Dwelling Form (GFIP)">Dwelling Form (GFIP)</option>
+                    <option value="General Propery Form">General Propery Form</option>
+                    <option value="RCBAP Form">RCBAP Form</option>
+                </select>
+            </label>
+            <label>Number of Units:<input type="text" id="number_of_units" name="number_of_units"></label>
+            <label>Occupancy:
+                <select id="pri_building_occupancy" name="pri_building_occupancy">
+                    <option value="Single-Family Home">Single-Family Home</option>
+                    <option value="Residential unit">Residential unit</option>
+                    <option value="Residential manufactured (mobile) home">Residential manufactured (mobile) home</option>
+                    <option value="Two-to-four-family building">Two-to-four-family building</option>
+                    <option value="Residential Condominium Building">Residential Condominium Building</option>
+                    <option value="Other residential building">Other residential building</option>
+                    <option value="Non-residential building">Non-residential building</option>
+                    <option value="Non-residential unit">Non-residential unit</option>
+                    <option value="Non-residential manufactured (mobile) home">Non-residential manufactured (mobile) home</option>
+                </select>
+            </label>
+            <label>Building Type:
+                <select id="pri_building_type" name="pri_building_type">
+                    <option value="Main Dwelling">Main Dwelling</option>
+                    <option value="Detached guest house">Detached guest house</option>
+                    <option value="Apartment unit">Apartment unit</option>
+                    <option value="Entire apartment building">Entire apartment building</option>
+                    <option value="Cooperative unit">Cooperative unit</option>
+                    <option value="Entire cooperative building">Entire cooperative building</option>
+                    <option value="residential condominium unit (in a residential building)">residential condominium unit (in a residential building)</option>
+                    <option value="residential condominium unit (in a non-residential building)">residential condominium unit (in a non-residential building)</option>
+                    <option value="Entire residential condominium building">Entire residential condominium building</option>
+                    <option value="Other dwelling type (explain in comments)">Other dwelling type (explain in comments)</option>
+                </select>
+            </label>
+            <label>Primary/Secondary:<input type="text" id="primary_secondary" name="primary_secondary"></label>
+            <label>Tenant Indicator:<input type="text" id="tenant_indicator" name="tenant_indicator"></label>
+            <label>Number of Floors:<input type="text" id="number_of_floors" name="number_of_floors"></label>
+            <label>Foundation Type:
+                <select id="pri_foundation_type" name="pri_foundation_type">
+                    <option value="Slab-on-grade (non-elevated)">Slab-on-grade (non-elevated)</option>
+                    <option value="Basement (non-elevated)">Basement (non-elevated)</option>
+                    <option value="Crawlspace (elevated or non-elevated sub-grade)">Crawlspace (elevated or non-elevated sub-grade)</option>
+                    <option value="Elevated without enclosure (on piers, posts or piles)">Elevated without enclosure (on piers, posts or piles)</option>
+                    <option value="Elevated with enclosure (on piers, posts or piles)">Elevated with enclosure (on piers, posts or piles)</option>
+                    <option value="Elevated with enclosure (on foundation walls)">Elevated with enclosure (on foundation walls)</option>
+                </select>
+            </label>
+            <label>Construction Type:
+                <select id="pri_construction_type" name="pri_construction_type">
+                    <option value="Framed">Framed</option>
+                    <option value="Masonry">Masonry</option>
+                    <option value="Other">Other</option>
+                </select>
+            </label>
+            <label>Number of Flood Openings:<input type="text" id="number_of_flood_openings" name="number_of_flood_openings"></label>
+            <label>Area of Permanent Flood:<input type="text" id="area_of_permanent_flood" name="area_of_permanent_flood"></label>
+            <label>Openings (sq. in):<input type="text" id="openings" name="openings"></label>
+            <label>Engineered Openings:<input type="text" id="engineered_openings" name="engineered_openings"></label>
+            <label>Does Building Contain M&amp;E:<input type="text" id="does_building_contain_me" name="does_building_contain_me"></label>
+            <label>M&amp;E Located Above First Floor:<input type="text" id="me_located_above_first_floor" name="me_located_above_first_floor"></label>
+            <label>Building Contains Washer/Dryer/Freezer:<input type="text" id="building_contain_washer_dryer_freezer" name="building_contain_washer_dryer_freezer"></label>
+            <label>Washer/Dryer/Freezer Above First Floor:<input type="text" id="washer_dryer_freezer_above_first_floor" name="washer_dryer_freezer_above_first_floor"></label>
+            <label>Enclosure Size:<input type="text" id="enclosure_size" name="enclosure_size"></label>
+            <label>First Floor Height:<input type="number" id="first_floor_height" name="first_floor_height" step="any"></label>
+            <label>First Floor Height Method:<input type="text" id="first_floor_height_method" name="first_floor_height_method"></label>
+            <fieldset>
+                <legend>Firm Status:</legend>
+                <div class="testing">
+                    <label><input type="radio" id="postFirm" name="firmStatus" value="Post">Post Firm</label>
+                    <label><input type="radio" id="preFirm" name="firmStatus" value="Pre">Pre Firm</label>
+                </div>
+            </fieldset>
+            <label>Flood Zone
+                <select id="floodZone" name="floodZone">
+                    <option value="NA">NA</option>
+                    <option value="X">X</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="A">A</option>
+                    <option value="AE">AE</option>
+                    <option value="A1">A1</option><option value="A2">A2</option><option value="A3">A3</option>
+                    <option value="A4">A4</option><option value="A5">A5</option><option value="A6">A6</option>
+                    <option value="A7">A7</option><option value="A8">A8</option><option value="A9">A9</option>
+                    <option value="A10">A10</option><option value="A11">A11</option><option value="A12">A12</option>
+                    <option value="A13">A13</option><option value="A14">A14</option><option value="A15">A15</option>
+                    <option value="A16">A16</option><option value="A17">A17</option><option value="A18">A18</option>
+                    <option value="A19">A19</option><option value="A20">A20</option><option value="A21">A21</option>
+                    <option value="A22">A22</option><option value="A23">A23</option><option value="A24">A24</option>
+                    <option value="A25">A25</option><option value="A26">A26</option><option value="A27">A27</option>
+                    <option value="A28">A28</option><option value="A29">A29</option><option value="A30">A30</option>
+                    <option value="A99">A99</option>
+                    <option value="AH">AH</option><option value="AO">AO</option><option value="AR">AR</option>
+                    <option value="V">V</option><option value="VE">VE</option>
+                    <option value="V1">V1</option><option value="V2">V2</option><option value="V3">V3</option>
+                    <option value="V4">V4</option><option value="V5">V5</option><option value="V6">V6</option>
+                    <option value="V7">V7</option><option value="V8">V8</option><option value="V9">V9</option>
+                    <option value="V10">V10</option><option value="V11">V11</option><option value="V12">V12</option>
+                    <option value="V13">V13</option><option value="V14">V14</option><option value="V15">V15</option>
+                    <option value="V16">V16</option><option value="V17">V17</option><option value="V18">V18</option>
+                    <option value="V19">V19</option><option value="V20">V20</option><option value="V21">V21</option>
+                    <option value="V22">V22</option><option value="V23">V23</option><option value="V24">V24</option>
+                    <option value="V25">V25</option><option value="V26">V26</option><option value="V27">V27</option>
+                    <option value="V28">V28</option><option value="V29">V29</option><option value="V30">V30</option>
+                </select>
+            </label>
+            <label>Date of Construction:<input type="date" id="dateOfConstruction" name="dateOfConstruction"></label>
+            <label>Substantial Improvement Date:<input type="date" id="substantial_improvement_date" name="substantial_improvement_date"></label>
+            <label>Firm Date:<input type="date" id="firmDate" name="firmDate"></label>
+            <label>Community Map:<input type="text" id="community_map" name="community_map"></label>
+            <label>Map Panel:<input type="text" id="map_panel" name="map_panel"></label>
+        </div>
+    </div>
+
+    <button type="submit">Submit</button>
+</form>
+
+<textarea id="jsonOutput"></textarea>
+
+<div>
+    <label>Upload File</label>
+    <div>
+        <input type="file" id="file" accept=".docx">
+        <button onclick="upload()">Upload</button>
+    </div>
+</div>
+
+<button onclick="copyToClipboard()">Copy to Clipboard</button>
+<button onclick="downloadJSON()">Download JSON</button>
+<button onclick="downloadJSONTokenized()">Download XACT Tokenized JSON</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script>
+// === Dynamic dropdown: building type based on occupancy ===
+function updateBuildingTypeDropdown() {
+    const occupancySelect = document.getElementById('pri_building_occupancy');
+    const buildingTypeSelect = document.getElementById('pri_building_type');
+    const selectedOccupancy = occupancySelect.value;
+    buildingTypeSelect.innerHTML = '';
+
+    const isNonResidential = selectedOccupancy.includes('Non-Residential') ||
+                            selectedOccupancy.includes('Non-Resident');
+    let options;
+    if (isNonResidential) {
+        options = ['Agricultural building', 'Commercial building', 'Government-owned building',
+                  'House of worship building', 'Recreation building', 'Detached garage', 'Storage/tool shed',
+                  'Other non-residential building type (explain in comments)'];
+    } else {
+        options = ['Main Dwelling', 'Detached guest house', 'Apartment unit', 'Entire apartment building',
+                  'Cooperative unit', 'Entire cooperative building',
+                  'residential condominium unit (in a residential building)',
+                  'residential condominium unit (in a non-residential building)',
+                  'Entire residential condominium building',
+                  'Other dwelling type (explain in comments)'];
+    }
+    options.forEach(option => {
+        buildingTypeSelect.add(new Option(option, option));
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('pri_building_occupancy').addEventListener('change', updateBuildingTypeDropdown);
+    setTimeout(updateBuildingTypeDropdown, 100);
+});
+
+// === Form submit: generate JSON ===
+document.getElementById('dataForm').onsubmit = function(event) {
+    event.preventDefault();
+    var json = {
+        backOffice: {
+            adjusterName: document.getElementById('adjusterName').value,
+            adjusterFcnNumber: document.getElementById('adjusterFcnNumber').value,
+            adjusterFileNumber: document.getElementById('adjusterFileNumber').value,
+            agencyInfo: {
+                agentName: document.getElementById('agentName').value,
+                agentCellNumber: document.getElementById('agentCellNumber').value,
+                agentEmail: document.getElementById('agentEmail').value,
+                mortgageCompany: document.getElementById('mortgageCompany').value
+            },
+            policyInformation: {
+                policyholderName: document.getElementById('policyholderName').value,
+                policyholderEmail: document.getElementById('policyholderEmail').value,
+                phoneNumberPrimary: document.getElementById('phoneNumberPrimary').value,
+                phoneNumberSecondary: document.getElementById('phoneNumberSecondary').value,
+                policyNumber: document.getElementById('policyNumber').value,
+                claimNumber: document.getElementById('claimNumber').value,
+                policyStartDate: formatDate(document.getElementById('policyStartDate').value),
+                policyEndDate: formatDate(document.getElementById('policyEndDate').value)
+            },
+            insurerInfo: {
+                insurer: document.getElementById('insurer').value,
+                edn: document.getElementById('edn').value,
+                policyNumber: document.getElementById('policyNumber').value,
+                claimNumber: document.getElementById('claimNumber').value,
+                adjuster: document.getElementById('adjusterName').value,
+                fcn: document.getElementById('adjusterFcnNumber').value,
+                adjustingFirm: document.getElementById('adjustingFirm').value,
+                fileNumber: document.getElementById('adjusterFileNumber').value,
+                insurerAddress: {
+                    street: document.getElementById('insurer_street').value,
+                    city: document.getElementById('insurer_city').value,
+                    state: document.getElementById('insurer_state').value,
+                    zip: document.getElementById('insurer_zip').value
+                },
+                firmAddress: {
+                    street: document.getElementById('firm_street').value,
+                    city: document.getElementById('firm_city').value,
+                    state: document.getElementById('firm_state').value,
+                    zip: document.getElementById('firm_zip').value
+                },
+                phoneNumber_1: document.getElementById('firm_phone_number').value,
+                phoneNumber_2: document.getElementById('adjusterPhoneNumber').value,
+                email: document.getElementById('firm_email').value,
+                comments: ""
+            },
+            mailingAddress: {
+                street: document.getElementById('mailing_street').value,
+                city: document.getElementById('mailing_city').value,
+                state: document.getElementById('mailing_state').value,
+                zip: document.getElementById('mailing_zip').value
+            },
+            lossAddress: {
+                street: document.getElementById('loss_street').value,
+                city: document.getElementById('loss_city').value,
+                state: document.getElementById('loss_state').value,
+                zip: document.getElementById('loss_zip').value
+            },
+            sameAddress: false,
+            claimInfo: {
+                dateOfLoss: formatDate(document.getElementById('dateOfLoss').value),
+                dateOfAssignment: formatDate(document.getElementById('dateOfAssignment').value),
+                dateOfContact: formatDate(document.getElementById('dateOfContact').value),
+                dateOfInspection: formatDate(document.getElementById('dateOfInspection').value),
+            },
+            coverages: {
+                coverageABuilding: getValueOrDefault(document.getElementById('coverageABuilding').value),
+                deductibleABuilding: getValueOrDefault(document.getElementById('deductibleABuilding').value),
+                coverageBPersonalProperty: getValueOrDefault(document.getElementById('coverageBPersonalProperty').value),
+                deductibleBPersonalProperty: getValueOrDefault(document.getElementById('deductibleBPersonalProperty').value),
+                coverageOtherStructures: getValueOrDefault(document.getElementById('coverageOtherStructures').value),
+                deductibleOtherStructure: getValueOrDefault(document.getElementById('deductibleOtherStructure').value)
+            },
+            ratingInformation: {
+                riskMethod: document.getElementById('risk_method').value,
+                sfipPolicyType: document.getElementById('sfip_policy_type').value,
+                numberOfUnits: document.getElementById('number_of_units').value,
+                priBuildingOccupancy: document.getElementById('pri_building_occupancy').value,
+                priBuildingType: document.getElementById('pri_building_type').value,
+                primarySecondary: document.getElementById('primary_secondary').value,
+                tenantIndicator: document.getElementById('tenant_indicator').value,
+                numberOfFloors: document.getElementById('number_of_floors').value,
+                priFoundationType: document.getElementById('pri_foundation_type').value,
+                priConstructionType: document.getElementById('pri_construction_type').value,
+                numberOfFloodOpenings: document.getElementById('number_of_flood_openings').value,
+                areaOfPermanentFlood: document.getElementById('area_of_permanent_flood').value,
+                openings: document.getElementById('openings').value,
+                engineeredOpenings: document.getElementById('engineered_openings').value,
+                doesBuildingContainME: document.getElementById('does_building_contain_me').value,
+                mELocatedAboveFirstFloor: document.getElementById('me_located_above_first_floor').value,
+                buildingContainWasherDryerFreezer: document.getElementById('building_contain_washer_dryer_freezer').value,
+                washerDryerFreezerAboveFirstFloor: document.getElementById('washer_dryer_freezer_above_first_floor').value,
+                enclosureSize: document.getElementById('enclosure_size').value,
+                firstFloorHeightInFeet: document.getElementById('first_floor_height').value ? Math.floor(parseFloat(document.getElementById('first_floor_height').value)).toString() : '',
+                firstFloorHeightInches: document.getElementById('first_floor_height').value ? Math.floor((parseFloat(document.getElementById('first_floor_height').value) % 1) * 12).toString() : '',
+                firstFloorHeightMethod: document.getElementById('first_floor_height_method').value,
+                postFirm: document.getElementById('postFirm').checked,
+                preFirm: document.getElementById('preFirm').checked,
+                floodZone: document.getElementById('floodZone').value,
+                dateOfConstruction: formatDate(document.getElementById('dateOfConstruction').value),
+                dateOfLastSubstantialImprovement: formatDate(document.getElementById('substantial_improvement_date').value),
+                firmDate: formatDate(document.getElementById('firmDate').value),
+                communityNumber: document.getElementById('community_map').value,
+                mapPanelNumber: document.getElementById('map_panel').value
+            }
+        },
+        userClaims: {
+            claimNumber: document.getElementById('claimNumber').value,
+            fileNumber: document.getElementById('adjusterFileNumber').value,
+            policyholder: document.getElementById('policyholderName').value,
+            policyNumber: document.getElementById('policyNumber').value,
+            assignedDate: formatDate(document.getElementById('dateOfAssignment').value),
+            dateOfLoss: formatDate(document.getElementById('dateOfLoss').value),
+            age: 0,
+            status: 0
+        }
+    };
+    document.getElementById('jsonOutput').value = JSON.stringify(json, null, 4);
+};
+
+function getValueOrDefault(value) {
+    return value.trim() === '' ? '0' : value;
+}
+
+function formatDate(isoDateString) {
+    if (!isoDateString) return '';
+    const [year, month, day] = isoDateString.split('-');
+    return `${month}/${day}/${year}`;
+}
+
+function copyToClipboard() {
+    const textarea = document.getElementById('jsonOutput');
+    textarea.select();
+    document.execCommand('copy');
+}
+
+function downloadJSON() {
+    var data = document.getElementById('jsonOutput').value;
+    var blob = new Blob([data], {type: 'application/plain'});
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'jsonData.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function downloadJSONTokenized() {
+    var json = {
+        backOffice: {
+            adjusterName: "[XM8_CLAIM_REP_NAME]",
+            adjusterFcnNumber: "[XM8_CLAIM_REP_ADJUSTER_FCN]",
+            adjusterFileNumber: "[XM8_FILE_NO]",
+            agencyInfo: {
+                agentName: "[XM8_AGENT_NAME]",
+                agentCellNumber: "[XM8_AGENT_C_PHONE]",
+                agentEmail: "null",
+                mortgageCompany: "[XM8_MORTGAGE_CO]"
+            },
+            policyInformation: {
+                policyholderName: "[XM8_INSURED_NAME]",
+                policyholderEmail: "[XM8_INSURED_EMAIL]",
+                phoneNumberPrimary: "[XM8_INSURED_C_PHONE]",
+                phoneNumberSecondary: "[XM8_INSURED_H_PHONE]",
+                policyNumber: "[XM8_POLICY_NUM]",
+                claimNumber: "[XM8_CLAIM_NUM]",
+                policyStartDate: "[XM8_DATE_POLICY_EFFECTIVE]",
+                policyEndDate: "[XM8_DATE_POLICY_TERM]"
+            },
+            insurerInfo: {
+                insurer: "[XM8_REFERENCE_COMPANY]",
+                edn: "null",
+                policyNumber: "[XM8_POLICY_NUM]",
+                claimNumber: "[XM8_CLAIM_NUM]",
+                adjuster: "[XM8_CLAIM_REP_NAME]",
+                fcn: "[XM8_CLAIM_REP_ADJUSTER_FCN]",
+                adjustingFirm: "[XM8_COMPANY_HDR_NAME]",
+                fileNumber: "[XM8_FILE_NO]",
+                insurerAddress: {
+                    street: "[XM8_REFERENCE_B_STREET]",
+                    city: "[XM8_REFERENCE_B_CITY]",
+                    state: "[XM8_REFERENCE_B_STATE]",
+                    zip: "[XM8_REFERENCE_B_ZIP]"
+                },
+                firmAddress: {
+                    street: "[XM8_CLAIM_REP_B_STREET]",
+                    city: "[XM8_CLAIM_REP_B_CITY]",
+                    state: "[XM8_CLAIM_REP_B_STATE]",
+                    zip: "[XM8_CLAIM_REP_B_ZIP]"
+                },
+                phoneNumber_1: "[XM8_CLAIM_REP_B_PHONE]",
+                phoneNumber_2: "[XM8_CLAIM_REP_C_PHONE]",
+                email: "[XM8_CLAIM_REP_E_MAIL]",
+                comments: "null"
+            },
+            mailingAddress: {
+                street: "[XM8_INSURED_H_STREET]",
+                city: "[XM8_INSURED_H_CITY]",
+                state: "[XM8_INSURED_H_STATE]",
+                zip: "[XM8_INSURED_H_ZIP]"
+            },
+            lossAddress: {
+                street: "[XM8_INSURED_P_STREET]",
+                city: "[XM8_INSURED_P_CITY]",
+                state: "[XM8_INSURED_P_STATE]",
+                zip: "[XM8_INSURED_P_ZIP]"
+            },
+            sameAddress: false,
+            claimInfo: {
+                dateOfLoss: "[XM8_DATE_LOSS]",
+                dateOfAssignment: "[XM8_DATE_RECEIVED]",
+                dateOfContact: "[XM8_DATE_CONTACTED]",
+                dateOfInspection: "[XM8_DATE_INSPECTED]"
+            },
+            coverages: {
+                coverageABuilding: "[XM8_COV_POLICY_LIMIT_1]",
+                deductibleABuilding: "[XM8_COV_DEDUCTIBLE_1]",
+                coverageBPersonalProperty: "[XM8_COV_POLICY_LIMIT_5]",
+                deductibleBPersonalProperty: "[XM8_COV_DEDUCTIBLE_5]",
+                coverageOtherStructures: "[XM8_COV_POLICY_LIMIT_2]",
+                deductibleOtherStructure: "[XM8_COV_DEDUCTIBLE_2]"
+            },
+            ratingInformation: {
+                riskMethod: "[XM8_RISK_METHOD]",
+                sfipPolicyType: "[XM8_SFIP_POLICY_TYPE]",
+                numberOfUnits: "[XM8_NUMBER_OF_UNITS]",
+                priBuildingOccupancy: "[XM8_PRI_BUILDING_OCCUPANCY]",
+                priBuildingType: "[XM8_PRI_BUILDING_TYPE]",
+                primarySecondary: "[XM8_PRIMARY_SECONDARY]",
+                tenantIndicator: "[XM8_TENANT_INDICATOR]",
+                numberOfFloors: "[XM8_NUMBER_OF_FLOORS]",
+                priFoundationType: "[XM8_PRI_FOUNDATION_TYPE]",
+                priConstructionType: "[XM8_PRI_CONSTRUCTION_TYPE]",
+                numberOfFloodOpenings: "[XM8_NUMBER_OF_FLOOD_OPENINGS]",
+                areaOfPermanentFlood: "[XM8_AREA_OF_PERMANENT_FLOOD]",
+                openings: "[XM8_OPENINGS]",
+                engineeredOpenings: "[XM8_ENGINEERED_OPENINGS]",
+                doesBuildingContainME: "[XM8_DOES_BUILDING_CONTAIN_ME]",
+                mELocatedAboveFirstFloor: "[XM8_M&E_LOCATED_ABOVE_FIRST_FLOOR]",
+                buildingContainWasherDryerFreezer: "[XM8_BUILDING_CONTAIN_WASHER_DRYER_FREEZER]",
+                washerDryerFreezerAboveFirstFloor: "[XM8_WASHER_DRYER_FREEZER_ABOVE_FIRST_FLOOR]",
+                enclosureSize: "[XM8_ENCLOSURE_SIZE]",
+                firstFloorHeightInFeet: "[XM8_FIRST_FLOOR_HEIGHT_FEET]",
+                firstFloorHeightInches: "[XM8_FIRST_FLOOR_HEIGHT_INCHES]",
+                firstFloorHeightMethod: "[XM8_FIRST_FLOOR_HEIGHT_METHOD]",
+                postFirm: "[XM8_FLOOD_POST_FIRM]",
+                preFirm: "[XM8_FLOOD_PRE_FIRM]",
+                floodZone: "[XM8_FLOOD_ZONE]",
+                dateOfConstruction: "[XM8_FLOOD_DATE_CONSTRUCTED]",
+                dateOfLastSubstantialImprovement: "[XM8_SUBSTANTIAL_IMPROVEMENT_DATE]",
+                firmDate: "[XM8_FLOOD_FIRM_DATE]",
+                communityNumber: "[XM8_COMMUNITY_MAP]",
+                mapPanelNumber: "[XM8_MAP_PANEL]"
+            }
+        },
+        userClaims: {
+            claimNumber: "[XM8_CLAIM_NUM]",
+            fileNumber: "[XM8_FILE_NO]",
+            policyholder: "[XM8_INSURED_NAME]",
+            policyNumber: "[XM8_POLICY_NUM]",
+            assignedDate: "[XM8_DATE_RECEIVED]",
+            dateOfLoss: "[XM8_DATE_LOSS]",
+            age: 0,
+            status: 0
+        }
+    };
+    var data = JSON.stringify(json, null, 4);
+    var blob = new Blob([data], {type: 'application/plain'});
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'jsonDataTokenized.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function toggleAddressFields() {
+    var isChecked = document.getElementById('sameAsLossAddress').checked;
+    document.getElementById('mailing_street').disabled = isChecked;
+    document.getElementById('mailing_city').disabled = isChecked;
+    document.getElementById('mailing_state').disabled = isChecked;
+    document.getElementById('mailing_zip').disabled = isChecked;
+
+    if (isChecked) {
+        document.getElementById('mailing_street').value = document.getElementById('loss_street').value;
+        document.getElementById('mailing_city').value = document.getElementById('loss_city').value;
+        document.getElementById('mailing_state').value = document.getElementById('loss_state').value;
+        document.getElementById('mailing_zip').value = document.getElementById('loss_zip').value;
+    } else {
+        document.getElementById('mailing_street').value = '';
+        document.getElementById('mailing_city').value = '';
+        document.getElementById('mailing_state').value = '';
+        document.getElementById('mailing_zip').value = '';
+    }
+}
+
+// === DOCX to JSON Converter ===
+async function upload() {
+    const fileInput = document.getElementById('file');
+    const file = fileInput.files[0];
+    if (!file) { alert('Please select a file'); return; }
+    if (!file.name.toLowerCase().endsWith('.docx')) { alert('Please upload a DOCX file'); return; }
+
+    try {
+        const jsonData = await extractJSONFromDocx(file);
+        const convertedData = convertToOSAFormat(jsonData);
+        document.getElementById('jsonOutput').value = JSON.stringify(convertedData, null, 4);
+    } catch (error) {
+        console.error('Error processing file:', error);
+        alert('Error processing file: ' + error.message);
+    }
+}
+
+async function extractJSONFromDocx(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+                const jsonContent = extractJSONFromText(result.value);
+                if (jsonContent) { resolve(jsonContent); }
+                else { reject(new Error('No valid JSON found in document')); }
+            } catch (error) { reject(error); }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+function extractJSONFromText(text) {
+    let cleanedText = text
+        .replace(/[\u201C\u201D]/g, '"')
+        .replace(/[\u2018\u2019]/g, "'")
+        .replace(/\r\n/g, '\n')
+        .replace(/\t/g, ' ');
+
+    const jsonMatch = cleanedText.match(/{[\s\S]*}/);
+    if (jsonMatch) {
+        try { return JSON.parse(jsonMatch[0]); }
+        catch (e) {
+            try { return JSON.parse(fixJsonString(jsonMatch[0])); }
+            catch (e2) { console.warn('Failed to parse JSON:', e2); }
+        }
+    }
+    return null;
+}
+
+function fixJsonString(jsonStr) {
+    return jsonStr
+        .replace(/([{,]\s*)(\w+)(:)/g, '$1"$2"$3')
+        .replace(/:\s*'([^']*)'/g, ': "$1"')
+        .replace(/,\s*}/g, '}')
+        .replace(/,\s*]/g, ']');
+}
+
+function convertToOSAFormat(sourceJSON) {
+    // Full converter — maps external JSON (from DOCX) to OSA's internal format
+    // See source for complete field mapping
+    const targetJSON = {
+        backOffice: {
+            adjusterName: '', adjusterFcnNumber: '', adjusterFileNumber: '',
+            agencyInfo: { agentName: '', agentCellNumber: '', agentEmail: '', mortgageCompany: '' },
+            policyInformation: { policyholderName: '', policyholderEmail: '', phoneNumberPrimary: '', phoneNumberSecondary: '', policyNumber: '', claimNumber: '', policyStartDate: '', policyEndDate: '' },
+            insurerInfo: { insurer: '', edn: '', policyNumber: '', claimNumber: '', adjuster: '', fcn: '', adjustingFirm: '', fileNumber: '', insurerAddress: { street: '', city: '', state: '', zip: '' }, firmAddress: { street: '', city: '', state: '', zip: '' }, phoneNumber_1: '', phoneNumber_2: '', email: '', comments: '' },
+            mailingAddress: { street: '', city: '', state: '', zip: '' },
+            lossAddress: { street: '', city: '', state: '', zip: '' },
+            sameAddress: false,
+            claimInfo: { dateOfLoss: '', dateOfAssignment: '', dateOfContact: '', dateOfInspection: '' },
+            coverages: { coverageABuilding: '0', deductibleABuilding: '0', coverageBPersonalProperty: '0', deductibleBPersonalProperty: '0', coverageOtherStructures: '0', deductibleOtherStructure: '0' },
+            ratingInformation: { riskMethod: '', sfipPolicyType: '', numberOfUnits: '', priBuildingOccupancy: '', priBuildingType: '', primarySecondary: '', tenantIndicator: '', numberOfFloors: '', priFoundationType: '', priConstructionType: '', numberOfFloodOpenings: '', areaOfPermanentFlood: '', openings: '', engineeredOpenings: '', doesBuildingContainME: '', mELocatedAboveFirstFloor: '', buildingContainWasherDryerFreezer: '', washerDryerFreezerAboveFirstFloor: '', enclosureSize: '', firstFloorHeightInFeet: '', firstFloorHeightInches: '', firstFloorHeightMethod: '', postFirm: false, preFirm: false, floodZone: '', dateOfConstruction: '', dateOfLastSubstantialImprovement: '', firmDate: '', communityNumber: '', mapPanelNumber: '' }
+        },
+        userClaims: { claimNumber: '', fileNumber: '', policyholder: '', policyNumber: '', assignedDate: '', dateOfLoss: '', age: 0, status: 0 }
+    };
+
+    if (sourceJSON) {
+        if (sourceJSON.assignmentId) {
+            targetJSON.backOffice.policyInformation.claimNumber = sourceJSON.assignmentId;
+            targetJSON.backOffice.insurerInfo.claimNumber = sourceJSON.assignmentId;
+            targetJSON.userClaims.claimNumber = sourceJSON.assignmentId;
+        }
+        if (sourceJSON.dateOfLoss) {
+            targetJSON.backOffice.claimInfo.dateOfLoss = formatDateString(sourceJSON.dateOfLoss);
+            targetJSON.userClaims.dateOfLoss = formatDateString(sourceJSON.dateOfLoss);
+        }
+        if (sourceJSON.dateOfAssignment) {
+            targetJSON.backOffice.claimInfo.dateOfAssignment = formatDateString(sourceJSON.dateOfAssignment);
+            targetJSON.userClaims.assignedDate = formatDateString(sourceJSON.dateOfAssignment);
+        }
+        if (sourceJSON.floodPolicyinfo) {
+            const policy = sourceJSON.floodPolicyinfo;
+            if (policy.policyNumber) {
+                targetJSON.backOffice.policyInformation.policyNumber = policy.policyNumber;
+                targetJSON.backOffice.insurerInfo.policyNumber = policy.policyNumber;
+                targetJSON.userClaims.policyNumber = policy.policyNumber;
+            }
+            if (policy.effectiveDate) targetJSON.backOffice.policyInformation.policyStartDate = formatDateString(policy.effectiveDate);
+            if (policy.expirationDate) targetJSON.backOffice.policyInformation.policyEndDate = formatDateString(policy.expirationDate);
+            if (policy.insured) {
+                const insured = policy.insured;
+                if (insured.primaryInsured) {
+                    const fullName = [insured.primaryInsured.firstName, insured.primaryInsured.middleName, insured.primaryInsured.lastName].filter(n => n).join(' ');
+                    targetJSON.backOffice.policyInformation.policyholderName = fullName;
+                    targetJSON.userClaims.policyholder = fullName;
+                }
+                if (insured.homePhoneNumber) targetJSON.backOffice.policyInformation.phoneNumberPrimary = insured.homePhoneNumber;
+                if (insured.cellPhoneNumber) targetJSON.backOffice.policyInformation.phoneNumberSecondary = insured.cellPhoneNumber;
+                if (insured.emailAddress) targetJSON.backOffice.policyInformation.policyholderEmail = insured.emailAddress;
+                if (insured.mailingAddress) {
+                    targetJSON.backOffice.mailingAddress.street = insured.mailingAddress.addressLine1 || '';
+                    targetJSON.backOffice.mailingAddress.city = insured.mailingAddress.city || '';
+                    targetJSON.backOffice.mailingAddress.state = insured.mailingAddress.stateProvince || '';
+                    targetJSON.backOffice.mailingAddress.zip = insured.mailingAddress.postalCode || '';
+                }
+                if (insured.PropertyAddress) {
+                    targetJSON.backOffice.lossAddress.street = insured.PropertyAddress.addressLine1 || '';
+                    targetJSON.backOffice.lossAddress.city = insured.PropertyAddress.city || '';
+                    targetJSON.backOffice.lossAddress.state = insured.PropertyAddress.stateProvince || '';
+                    targetJSON.backOffice.lossAddress.zip = insured.PropertyAddress.postalCode || '';
+                }
+            }
+            if (policy.insuranceAgency) {
+                targetJSON.backOffice.agencyInfo.agentName = policy.insuranceAgency.agencyName || '';
+                targetJSON.backOffice.agencyInfo.agentCellNumber = policy.insuranceAgency.businessPhoneNumber || '';
+                targetJSON.backOffice.agencyInfo.agentEmail = policy.insuranceAgency.emailAddress || '';
+            }
+            if (policy.coverages) {
+                targetJSON.backOffice.coverages.coverageABuilding = policy.coverages.buildingCoverage?.toString() || '0';
+                targetJSON.backOffice.coverages.deductibleABuilding = policy.coverages.buildingDeductible?.toString() || '0';
+                targetJSON.backOffice.coverages.coverageBPersonalProperty = policy.coverages.contentsCoverage?.toString() || '0';
+                targetJSON.backOffice.coverages.deductibleBPersonalProperty = policy.coverages.contentsDeductible?.toString() || '0';
+                targetJSON.backOffice.coverages.coverageOtherStructures = policy.coverages.ICCCoverage?.toString() || '0';
+                targetJSON.backOffice.coverages.deductibleOtherStructure = policy.coverages.IccDeductible?.toString() || '0';
+            }
+            targetJSON.backOffice.ratingInformation.sfipPolicyType = policy.SFIPPolicyType || '';
+            targetJSON.backOffice.ratingInformation.priBuildingOccupancy = policy.BuildingoccupancyType || '';
+            targetJSON.backOffice.ratingInformation.priBuildingType = policy.buildingType || '';
+            targetJSON.backOffice.ratingInformation.priFoundationType = policy.FoundationType || '';
+            targetJSON.backOffice.ratingInformation.priConstructionType = policy.ConstructionType || '';
+            targetJSON.backOffice.ratingInformation.floodZone = policy.floodZone || '';
+            targetJSON.backOffice.ratingInformation.numberOfFloors = policy.floors_in_building || '';
+            if (policy.First_floor_height_ft !== undefined) targetJSON.backOffice.ratingInformation.firstFloorHeightInFeet = policy.First_floor_height_ft.toString();
+            if (policy.First_floor_height_in !== undefined) targetJSON.backOffice.ratingInformation.firstFloorHeightInches = policy.First_floor_height_in.toString();
+            if (policy.FIRM_Date) targetJSON.backOffice.ratingInformation.firmDate = formatDateString(policy.FIRM_Date);
+            if (policy.dateOfConstruction) targetJSON.backOffice.ratingInformation.dateOfConstruction = formatDateString(policy.dateOfConstruction);
+            if (policy.FIRM_status === 'Pre-FIRM') targetJSON.backOffice.ratingInformation.preFirm = true;
+            else if (policy.FIRM_status === 'Post-FIRM') targetJSON.backOffice.ratingInformation.postFirm = true;
+            if (policy.communityInformation) {
+                targetJSON.backOffice.ratingInformation.communityNumber = policy.communityInformation.communityId || '';
+                targetJSON.backOffice.ratingInformation.mapPanelNumber = (policy.communityInformation.panelNumber || '') + (policy.communityInformation.panelSuffix || '');
+            }
+        }
+        if (sourceJSON.carrierWYOinfo) {
+            targetJSON.backOffice.insurerInfo.insurer = sourceJSON.carrierWYOinfo.CompanyName || '';
+            if (sourceJSON.carrierWYOinfo.mailingAddress) {
+                targetJSON.backOffice.insurerInfo.insurerAddress.street = sourceJSON.carrierWYOinfo.mailingAddress.addressLine1 || '';
+                targetJSON.backOffice.insurerInfo.insurerAddress.city = sourceJSON.carrierWYOinfo.mailingAddress.city || '';
+                targetJSON.backOffice.insurerInfo.insurerAddress.state = sourceJSON.carrierWYOinfo.mailingAddress.stateProvince || '';
+                targetJSON.backOffice.insurerInfo.insurerAddress.zip = sourceJSON.carrierWYOinfo.mailingAddress.postalCode || '';
+            }
+            targetJSON.backOffice.insurerInfo.phoneNumber_1 = sourceJSON.carrierWYOinfo.businessPhoneNumber || '';
+        }
+        if (sourceJSON.claimsAdjustingFirminfo) {
+            targetJSON.backOffice.insurerInfo.adjustingFirm = sourceJSON.claimsAdjustingFirminfo.CompanyName || '';
+            if (sourceJSON.claimsAdjustingFirminfo.mailingAddress) {
+                targetJSON.backOffice.insurerInfo.firmAddress.street = sourceJSON.claimsAdjustingFirminfo.mailingAddress.addressLine1 || '';
+                targetJSON.backOffice.insurerInfo.firmAddress.city = sourceJSON.claimsAdjustingFirminfo.mailingAddress.city || '';
+                targetJSON.backOffice.insurerInfo.firmAddress.state = sourceJSON.claimsAdjustingFirminfo.mailingAddress.stateProvince || '';
+                targetJSON.backOffice.insurerInfo.firmAddress.zip = sourceJSON.claimsAdjustingFirminfo.mailingAddress.postalCode || '';
+            }
+            targetJSON.backOffice.insurerInfo.phoneNumber_2 = sourceJSON.claimsAdjustingFirminfo.businessPhoneNumber || '';
+        }
+    }
+    return targetJSON;
+}
+
+function formatDateString(dateStr) {
+    if (!dateStr) return '';
+    try {
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${month}/${day}/${year}`;
+        }
+    } catch (e) { console.warn('Could not parse date:', dateStr); }
+    return dateStr;
+}
+</script>
+</body>
+</html>

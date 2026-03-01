@@ -30,6 +30,7 @@
 
 html {
   scroll-behavior: smooth;
+  overscroll-behavior: none;
 }
 
 body {
@@ -38,6 +39,7 @@ body {
   color: var(--color-pearl);
   line-height: 1.6;
   overflow-x: hidden;
+  overscroll-behavior: none;
   margin: 0;
 }
 

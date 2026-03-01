@@ -34,10 +34,10 @@ const footerLinks: Record<string, FooterLink[]> = {
     { name: 'Contact', to: '/contact' },
   ],
   Legal: [
-    { name: 'Privacy Policy', to: '/privacy-policy' },
-    { name: 'Terms of Service', to: '/terms' },
-    { name: 'Security Guidelines', to: '/security-guidelines' },
-    { name: 'Mobile App EULA', to: '/mobile-app-eula' },
+    { name: 'Privacy Policy', to: '/legal/privacy-policy.pdf', external: true },
+    { name: 'Terms of Service', to: '/legal/terms-of-service.pdf', external: true },
+    { name: 'Security Guidelines', to: '/legal/security-guidelines.pdf', external: true },
+    { name: 'Mobile App EULA', to: '/legal/mobile-app-eula.pdf', external: true },
   ],
 };
 
