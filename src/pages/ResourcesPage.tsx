@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Video, FileText, HelpCircle, ExternalLink, Download, ArrowRight, Clock, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import type { Post, TrainingVideo } from '../lib/supabase';
+import type { Post, TrainingVideo, DocumentCategory, Document } from '../lib/supabase';
 import TrainingCalendar from '../components/TrainingCalendar';
 
 const tabs = [
@@ -11,12 +11,6 @@ const tabs = [
   { id: 'training', label: 'Training', icon: Video },
   { id: 'library', label: 'Library', icon: FileText },
   { id: 'support', label: 'Support', icon: HelpCircle },
-];
-
-const documents = [
-  { title: 'Getting Started Guide', description: 'Complete walkthrough for new users', type: 'PDF', url: 'https://www.one-stop-adjuster.com/s/Getting-Started-Guide-Verisk2.pdf' },
-  { title: 'OSA Pocket Guide', description: 'Quick reference guide for field adjusters', type: 'PDF', url: 'https://www.one-stop-adjuster.com/s/OSA-Pocket-Guide-9-25-2025.pdf' },
-  { title: 'OSA Process', description: 'End-to-end claims process documentation', type: 'DOCX', url: 'https://www.one-stop-adjuster.com/s/OSA-Process.docx' },
 ];
 
 const containerVariants = {
@@ -34,6 +28,8 @@ export default function ResourcesPage(): React.JSX.Element {
   const [recentPosts, setRecentPosts] = useState<Post[]>([]);
   const [trainingVideos, setTrainingVideos] = useState<TrainingVideo[]>([]);
   const [videosExpanded, setVideosExpanded] = useState(false);
+  const [categories, setCategories] = useState<DocumentCategory[]>([]);
+  const [docs, setDocs] = useState<Document[]>([]);
 
   useEffect(() => {
     async function fetchRecentPosts(): Promise<void> {
@@ -47,6 +43,27 @@ export default function ResourcesPage(): React.JSX.Element {
     }
     fetchRecentPosts();
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== 'docs') return;
+    async function fetchDocs(): Promise<void> {
+      const [catRes, docRes] = await Promise.all([
+        supabase
+          .from('document_categories')
+          .select('*')
+          .eq('status', 'published')
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('documents')
+          .select('*')
+          .eq('status', 'published')
+          .order('sort_order', { ascending: true }),
+      ]);
+      if (catRes.data) setCategories(catRes.data as DocumentCategory[]);
+      if (docRes.data) setDocs(docRes.data as Document[]);
+    }
+    fetchDocs();
+  }, [activeTab]);
 
   useEffect(() => {
     if (activeTab !== 'training') return;
@@ -99,32 +116,49 @@ export default function ResourcesPage(): React.JSX.Element {
         {/* Documentation Tab */}
         {activeTab === 'docs' && (
           <motion.div
-            className="max-w-3xl mx-auto space-y-4"
+            className="max-w-3xl mx-auto space-y-8"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
-            {documents.map((doc) => (
-              <motion.a
-                key={doc.title}
-                variants={itemVariants}
-                href={doc.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="glass rounded-xl p-5 flex items-center justify-between group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors">
-                    <Download className="w-5 h-5 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{doc.title}</h3>
-                    <p className="text-[var(--color-mist)] text-sm">{doc.description}</p>
+            {categories.map((cat) => {
+              const catDocs = docs.filter((d) => d.category_id === cat.id);
+              if (catDocs.length === 0) return null;
+              return (
+                <div key={cat.id}>
+                  <h3 className="text-lg font-semibold text-[var(--color-pearl)] mb-3">{cat.name}</h3>
+                  <div className="space-y-3">
+                    {catDocs.map((doc) => (
+                      <motion.a
+                        key={doc.id}
+                        variants={itemVariants}
+                        href={doc.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="glass rounded-xl p-5 flex items-center justify-between group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors">
+                            <Download className="w-5 h-5 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">{doc.title}</h4>
+                            {doc.description && <p className="text-[var(--color-mist)] text-sm">{doc.description}</p>}
+                          </div>
+                        </div>
+                        <span className="text-xs text-[var(--color-wave)] bg-[var(--color-ocean)]/10 px-2 py-1 rounded uppercase">{doc.file_type}</span>
+                      </motion.a>
+                    ))}
                   </div>
                 </div>
-                <span className="text-xs text-[var(--color-wave)] bg-[var(--color-ocean)]/10 px-2 py-1 rounded">{doc.type}</span>
-              </motion.a>
-            ))}
+              );
+            })}
+            {categories.length === 0 && (
+              <div className="glass rounded-2xl p-8 text-center">
+                <FileText className="w-12 h-12 text-[var(--color-wave)] mx-auto mb-4" />
+                <p className="text-[var(--color-mist)]">Documents coming soon.</p>
+              </div>
+            )}
           </motion.div>
         )}
 
