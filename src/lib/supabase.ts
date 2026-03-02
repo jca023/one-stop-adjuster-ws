@@ -54,3 +54,26 @@ export interface TrainingVideo {
   status: 'draft' | 'published';
   created_at: string;
 }
+
+export interface DocumentCategory {
+  id: string;
+  name: string;
+  sort_order: number;
+  status: 'draft' | 'published';
+  created_at: string;
+}
+
+export interface Document {
+  id: string;
+  category_id: string;
+  title: string;
+  description: string | null;
+  file_url: string;
+  file_name: string;
+  file_size: number;
+  file_type: string;
+  sort_order: number;
+  status: 'draft' | 'published';
+  created_at: string;
+  updated_at: string;
+}
