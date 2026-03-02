@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Video, FileText, HelpCircle, ExternalLink, Download, ArrowRight, Clock, User, ChevronDown, ChevronUp } from 'lucide-react';
+import { BookOpen, Video, FileText, HelpCircle, ExternalLink, Download, ArrowRight, Clock, User, ChevronDown, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { Post, TrainingVideo, DocumentCategory, Document, VideoCategory } from '../lib/supabase';
@@ -19,6 +19,7 @@ export default function ResourcesPage(): React.JSX.Element {
   const [recentPosts, setRecentPosts] = useState<Post[]>([]);
   const [trainingVideos, setTrainingVideos] = useState<TrainingVideo[]>([]);
   const [videoCategories, setVideoCategories] = useState<VideoCategory[]>([]);
+  const [videosExpanded, setVideosExpanded] = useState(false);
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const [categories, setCategories] = useState<DocumentCategory[]>([]);
   const [docs, setDocs] = useState<Document[]>([]);
@@ -172,70 +173,109 @@ export default function ResourcesPage(): React.JSX.Element {
             {/* Calendar */}
             <TrainingCalendar />
 
-            {/* Training Videos by Category */}
-            {videoCategories.map((cat) => {
-              const catVideos = trainingVideos.filter((v) => v.category_id === cat.id);
-              if (catVideos.length === 0) return null;
-              return (
-                <div key={cat.id} className="glass rounded-2xl overflow-hidden">
-                  <button
-                    onClick={() => setExpandedCategoryId(expandedCategoryId === cat.id ? null : cat.id)}
-                    className="w-full px-5 py-5 flex items-center justify-between hover:bg-[var(--color-ocean)]/10 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center">
-                        <Video className="w-5 h-5 text-[var(--color-surf)]" />
-                      </div>
-                      <div className="text-left">
-                        <h3 className="font-semibold text-lg">{cat.name}</h3>
-                        <p className="text-[var(--color-mist)] text-sm">
-                          {catVideos.length} video{catVideos.length !== 1 ? 's' : ''}
-                        </p>
-                      </div>
-                    </div>
-                    {expandedCategoryId === cat.id
-                      ? <ChevronUp className="w-5 h-5 text-[var(--color-wave)]" />
-                      : <ChevronDown className="w-5 h-5 text-[var(--color-wave)]" />}
-                  </button>
-
-                  <AnimatePresence>
-                    {expandedCategoryId === cat.id && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-5 pb-5 grid sm:grid-cols-2 gap-3">
-                          {catVideos.map((video) => (
-                            <a
-                              key={video.id}
-                              href={video.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="glass rounded-xl p-4 flex items-center gap-3 group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors"
-                            >
-                              <div className="w-8 h-8 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors shrink-0">
-                                <Video className="w-4 h-4 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
-                              </div>
-                              <span className="font-medium text-sm flex-1">{video.title}</span>
-                              <ExternalLink className="w-3.5 h-3.5 text-[var(--color-wave)] group-hover:text-[var(--color-gold)] transition-colors shrink-0" />
-                            </a>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+            {/* Training Videos Card */}
+            <div className="glass rounded-2xl overflow-hidden border border-transparent hover:border-[var(--color-gold)]/20 transition-colors">
+              <button
+                onClick={() => setVideosExpanded(!videosExpanded)}
+                className="w-full px-6 py-6 flex items-center justify-between hover:bg-[var(--color-ocean)]/5 transition-colors"
+              >
+                <div className="flex items-center gap-5">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[var(--color-surf)]/30 to-[var(--color-gold)]/10 flex items-center justify-center border border-[var(--color-surf)]/20">
+                    <Play className="w-7 h-7 text-[var(--color-surf)]" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-semibold text-xl text-[var(--color-pearl)]">OSA Training Videos</h3>
+                    <p className="text-[var(--color-mist)] text-sm mt-0.5">
+                      Step-by-step video instructions and tutorials
+                      {trainingVideos.length > 0 && (
+                        <span className="text-[var(--color-wave)] ml-2">&middot; {trainingVideos.length} videos</span>
+                      )}
+                    </p>
+                  </div>
                 </div>
-              );
-            })}
-            {videoCategories.length === 0 && trainingVideos.length === 0 && (
-              <div className="glass rounded-2xl p-8 text-center">
-                <Video className="w-12 h-12 text-[var(--color-wave)] mx-auto mb-4" />
-                <p className="text-[var(--color-mist)]">Training videos coming soon.</p>
-              </div>
-            )}
+                <motion.div
+                  animate={{ rotate: videosExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ChevronDown className="w-5 h-5 text-[var(--color-wave)]" />
+                </motion.div>
+              </button>
+
+              <AnimatePresence>
+                {videosExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.35, ease: 'easeInOut' }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-6 pb-6 space-y-3">
+                      {videoCategories.map((cat) => {
+                        const catVideos = trainingVideos.filter((v) => v.category_id === cat.id);
+                        if (catVideos.length === 0) return null;
+                        const isExpanded = expandedCategoryId === cat.id;
+                        return (
+                          <div key={cat.id} className="rounded-xl bg-[var(--color-deep)]/60 border border-[var(--color-ocean)]/20 overflow-hidden">
+                            <button
+                              onClick={() => setExpandedCategoryId(isExpanded ? null : cat.id)}
+                              className="w-full px-4 py-3.5 flex items-center justify-between hover:bg-[var(--color-ocean)]/10 transition-colors"
+                            >
+                              <div className="flex items-center gap-3">
+                                <Video className="w-4 h-4 text-[var(--color-surf)]" />
+                                <span className="font-medium">{cat.name}</span>
+                                <span className="text-xs text-[var(--color-wave)] bg-[var(--color-ocean)]/15 px-2 py-0.5 rounded-full">
+                                  {catVideos.length}
+                                </span>
+                              </div>
+                              <motion.div
+                                animate={{ rotate: isExpanded ? 180 : 0 }}
+                                transition={{ duration: 0.25 }}
+                              >
+                                <ChevronDown className="w-4 h-4 text-[var(--color-wave)]" />
+                              </motion.div>
+                            </button>
+
+                            <AnimatePresence>
+                              {isExpanded && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.25 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="px-4 pb-4 grid sm:grid-cols-2 gap-2">
+                                    {catVideos.map((video) => (
+                                      <a
+                                        key={video.id}
+                                        href={video.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="rounded-lg px-3.5 py-3 flex items-center gap-3 group hover:bg-[var(--color-ocean)]/15 transition-colors"
+                                      >
+                                        <div className="w-7 h-7 rounded-md bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors shrink-0">
+                                          <Play className="w-3.5 h-3.5 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
+                                        </div>
+                                        <span className="font-medium text-sm flex-1 text-[var(--color-mist)] group-hover:text-[var(--color-pearl)] transition-colors">{video.title}</span>
+                                        <ExternalLink className="w-3 h-3 text-[var(--color-wave)] group-hover:text-[var(--color-gold)] transition-colors shrink-0 opacity-0 group-hover:opacity-100" />
+                                      </a>
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      })}
+                      {videoCategories.length === 0 && (
+                        <p className="text-[var(--color-mist)] text-sm text-center py-4">Training videos coming soon.</p>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </motion.div>
         )}
 
