@@ -1,10 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, X, Save, ArrowLeft, Calendar, Video, FolderOpen, GripVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Save, ArrowLeft, Calendar, Video, GripVertical, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import {
+  DndContext,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  useDroppable,
+} from '@dnd-kit/core';
+import type {
+  DragStartEvent,
+  DragOverEvent,
+  DragEndEvent,
+  UniqueIdentifier,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '../../lib/supabase';
 import type { TrainingEvent, TrainingVideo, VideoCategory } from '../../lib/supabase';
@@ -36,17 +57,60 @@ const emptyVideo: Partial<TrainingVideo> = {
 
 const inputClass = 'w-full px-4 py-2.5 rounded-lg bg-[var(--color-deep)] border border-[var(--color-ocean)]/30 focus:border-[var(--color-gold)] outline-none transition-colors';
 
-/* ---------- sortable sub-components ---------- */
+/* ---------- ID helpers ---------- */
 
-interface SortableVideoCategoryItemProps {
-  cat: VideoCategory;
-  videoCount: number;
-  onEdit: () => void;
-  onDelete: () => void;
+function toCatSortId(catId: string): string {
+  return `cat-${catId}`;
 }
 
-function SortableVideoCategoryItem({ cat, videoCount, onEdit, onDelete }: SortableVideoCategoryItemProps): React.JSX.Element {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: cat.id });
+function fromCatSortId(sortId: UniqueIdentifier): string {
+  return String(sortId).replace(/^cat-/, '');
+}
+
+/* ---------- sortable sub-components ---------- */
+
+interface SortableVideoCategoryGroupProps {
+  cat: VideoCategory;
+  items: TrainingVideo[];
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+  onEditCategory: () => void;
+  onDeleteCategory: () => void;
+  onAddVideo: () => void;
+  selectedVideoIds: Set<string>;
+  onToggleVideoSelect: (id: string) => void;
+  onEditVideo: (vid: TrainingVideo) => void;
+  onDeleteVideo: (vid: TrainingVideo) => void;
+  activeDragType: 'category' | 'item' | null;
+  overCategoryId: string | null;
+}
+
+function SortableVideoCategoryGroup({
+  cat,
+  items,
+  isExpanded,
+  onToggleExpand,
+  onEditCategory,
+  onDeleteCategory,
+  onAddVideo,
+  selectedVideoIds,
+  onToggleVideoSelect,
+  onEditVideo,
+  onDeleteVideo,
+  activeDragType,
+  overCategoryId,
+}: SortableVideoCategoryGroupProps): React.JSX.Element {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: toCatSortId(cat.id),
+    data: { type: 'category' },
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -56,51 +120,149 @@ function SortableVideoCategoryItem({ cat, videoCount, onEdit, onDelete }: Sortab
     position: 'relative' as const,
   };
 
+  const isHighlighted = activeDragType === 'item' && overCategoryId === cat.id;
+
   return (
-    <div ref={setNodeRef} style={style} className="p-5 flex items-center justify-between gap-4">
-      <button
-        type="button"
-        className="p-1.5 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors cursor-grab active:cursor-grabbing shrink-0 touch-none"
-        aria-label="Drag to reorder"
-        {...attributes}
-        {...listeners}
+    <div ref={setNodeRef} style={style} className="mb-3">
+      {/* Category header bar */}
+      <div
+        className={`glass rounded-xl px-4 py-3 flex items-center gap-3 transition-all duration-200 ${
+          isHighlighted
+            ? 'ring-2 ring-[var(--color-gold)] shadow-[0_0_16px_rgba(var(--gold-rgb,212,175,55),0.3)]'
+            : ''
+        }`}
       >
-        <GripVertical className="w-4 h-4 text-[var(--color-wave)]" />
-      </button>
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold truncate">{cat.name}</h3>
-        <div className="flex items-center gap-3 mt-1 text-xs text-[var(--color-wave)]">
-          <span className="px-2 py-0.5 rounded-full bg-[var(--color-surf)]/20 text-[var(--color-surf)]">
-            {videoCount} video{videoCount !== 1 ? 's' : ''}
+        <button
+          type="button"
+          className="p-1 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors cursor-grab active:cursor-grabbing shrink-0 touch-none"
+          aria-label="Drag to reorder category"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="w-4 h-4 text-[var(--color-wave)]" />
+        </button>
+
+        <button
+          type="button"
+          onClick={onToggleExpand}
+          className="flex items-center gap-2 flex-1 min-w-0 text-left"
+        >
+          <motion.span
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="shrink-0"
+          >
+            <ChevronDown className="w-4 h-4 text-[var(--color-wave)]" />
+          </motion.span>
+          <h3 className="font-semibold truncate text-[var(--color-pearl)]">
+            {cat.name}
+          </h3>
+          <span className="px-2 py-0.5 rounded-full bg-[var(--color-surf)]/20 text-[var(--color-surf)] text-xs shrink-0">
+            {items.length} video{items.length !== 1 ? 's' : ''}
           </span>
-          <span className={cat.status === 'published' ? 'text-[var(--color-success)]' : 'text-[var(--color-wave)]'}>
+          <span
+            className={`text-xs shrink-0 ${
+              cat.status === 'published'
+                ? 'text-[var(--color-success)]'
+                : 'text-[var(--color-wave)]'
+            }`}
+          >
             {cat.status}
           </span>
+        </button>
+
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={onAddVideo}
+            className="p-2 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors"
+            title="Add video to this category"
+          >
+            <Plus className="w-4 h-4 text-[var(--color-gold)]" />
+          </button>
+          <button
+            onClick={onEditCategory}
+            className="p-2 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors"
+            title="Edit category"
+          >
+            <Pencil className="w-4 h-4 text-[var(--color-surf)]" />
+          </button>
+          <button
+            onClick={onDeleteCategory}
+            className="p-2 rounded-lg hover:bg-red-500/20 transition-colors"
+            title="Delete category"
+          >
+            <Trash2 className="w-4 h-4 text-red-400" />
+          </button>
         </div>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <button onClick={onEdit} className="p-2 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors" title="Edit">
-          <Pencil className="w-4 h-4 text-[var(--color-surf)]" />
-        </button>
-        <button onClick={onDelete} className="p-2 rounded-lg hover:bg-red-500/20 transition-colors" title="Delete">
-          <Trash2 className="w-4 h-4 text-red-400" />
-        </button>
-      </div>
+
+      {/* Expandable video items */}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="pt-1 pl-4">
+              <SortableContext
+                items={items.map((v) => v.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {items.map((vid) => (
+                  <SortableVideoItem
+                    key={vid.id}
+                    vid={vid}
+                    isSelected={selectedVideoIds.has(vid.id)}
+                    onToggleSelect={() => onToggleVideoSelect(vid.id)}
+                    onEdit={() => onEditVideo(vid)}
+                    onDelete={() => onDeleteVideo(vid)}
+                  />
+                ))}
+                {items.length === 0 && (
+                  <div className="py-4 px-3 text-sm text-[var(--color-wave)] italic">
+                    No videos in this category.
+                  </div>
+                )}
+              </SortableContext>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
+/* ---------- Sortable video item ---------- */
+
 interface SortableVideoItemProps {
   vid: TrainingVideo;
-  categoryName: string;
   isSelected: boolean;
   onToggleSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-function SortableVideoItem({ vid, categoryName, isSelected, onToggleSelect, onEdit, onDelete }: SortableVideoItemProps): React.JSX.Element {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: vid.id });
+function SortableVideoItem({
+  vid,
+  isSelected,
+  onToggleSelect,
+  onEdit,
+  onDelete,
+}: SortableVideoItemProps): React.JSX.Element {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: vid.id,
+    data: { type: 'item', containerId: vid.category_id },
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -111,7 +273,11 @@ function SortableVideoItem({ vid, categoryName, isSelected, onToggleSelect, onEd
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="p-5 flex items-center justify-between gap-4">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="glass rounded-lg px-3 py-2.5 mb-1.5 flex items-center gap-3"
+    >
       <label className="shrink-0 flex items-center cursor-pointer">
         <input
           type="checkbox"
@@ -122,7 +288,7 @@ function SortableVideoItem({ vid, categoryName, isSelected, onToggleSelect, onEd
       </label>
       <button
         type="button"
-        className="p-1.5 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors cursor-grab active:cursor-grabbing shrink-0 touch-none"
+        className="p-1 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors cursor-grab active:cursor-grabbing shrink-0 touch-none"
         aria-label="Drag to reorder"
         {...attributes}
         {...listeners}
@@ -130,41 +296,159 @@ function SortableVideoItem({ vid, categoryName, isSelected, onToggleSelect, onEd
         <GripVertical className="w-4 h-4 text-[var(--color-wave)]" />
       </button>
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold truncate">{vid.title}</h3>
-        <div className="flex items-center gap-3 mt-1 text-xs text-[var(--color-wave)] flex-wrap">
-          <span className="text-[var(--color-surf)]">{categoryName}</span>
-          <a href={vid.url} target="_blank" rel="noopener noreferrer" className="text-[var(--color-surf)] hover:underline truncate max-w-xs">
+        <h4 className="text-sm font-semibold truncate text-[var(--color-pearl)]">
+          {vid.title}
+        </h4>
+        <div className="flex items-center gap-2 mt-0.5 text-xs text-[var(--color-wave)] flex-wrap">
+          <a
+            href={vid.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[var(--color-surf)] hover:underline truncate max-w-xs"
+          >
             {vid.url}
           </a>
-          <span className={vid.status === 'published' ? 'text-[var(--color-success)]' : 'text-[var(--color-wave)]'}>
+          <span
+            className={
+              vid.status === 'published'
+                ? 'text-[var(--color-success)]'
+                : 'text-[var(--color-wave)]'
+            }
+          >
             {vid.status}
           </span>
         </div>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <button onClick={onEdit} className="p-2 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors" title="Edit">
-          <Pencil className="w-4 h-4 text-[var(--color-surf)]" />
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          onClick={onEdit}
+          className="p-1.5 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors"
+          title="Edit"
+        >
+          <Pencil className="w-3.5 h-3.5 text-[var(--color-surf)]" />
         </button>
-        <button onClick={onDelete} className="p-2 rounded-lg hover:bg-red-500/20 transition-colors" title="Delete">
-          <Trash2 className="w-4 h-4 text-red-400" />
+        <button
+          onClick={onDelete}
+          className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors"
+          title="Delete"
+        >
+          <Trash2 className="w-3.5 h-3.5 text-red-400" />
         </button>
       </div>
     </div>
   );
 }
 
-/* ---------- component ---------- */
+/* ---------- Unassigned droppable zone ---------- */
+
+interface UnassignedVideoZoneProps {
+  items: TrainingVideo[];
+  selectedVideoIds: Set<string>;
+  onToggleVideoSelect: (id: string) => void;
+  onEditVideo: (vid: TrainingVideo) => void;
+  onDeleteVideo: (vid: TrainingVideo) => void;
+  activeDragType: 'category' | 'item' | null;
+  overCategoryId: string | null;
+}
+
+function UnassignedVideoZone({
+  items,
+  selectedVideoIds,
+  onToggleVideoSelect,
+  onEditVideo,
+  onDeleteVideo,
+  activeDragType,
+  overCategoryId,
+}: UnassignedVideoZoneProps): React.JSX.Element {
+  const { setNodeRef, isOver } = useDroppable({
+    id: 'unassigned-drop',
+    data: { type: 'unassigned-zone' },
+  });
+
+  const isHighlighted =
+    (activeDragType === 'item' && overCategoryId === 'unassigned') || isOver;
+
+  return (
+    <div ref={setNodeRef} className="mb-3">
+      <div
+        className={`glass rounded-xl px-4 py-3 transition-all duration-200 ${
+          isHighlighted
+            ? 'ring-2 ring-[var(--color-gold)] shadow-[0_0_16px_rgba(var(--gold-rgb,212,175,55),0.3)]'
+            : ''
+        }`}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <h3 className="font-semibold text-[var(--color-wave)]">Unassigned</h3>
+          <span className="px-2 py-0.5 rounded-full bg-[var(--color-ocean)]/20 text-[var(--color-wave)] text-xs">
+            {items.length} video{items.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+        <div className="pl-4">
+          <SortableContext
+            items={items.map((v) => v.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {items.map((vid) => (
+              <SortableVideoItem
+                key={vid.id}
+                vid={vid}
+                isSelected={selectedVideoIds.has(vid.id)}
+                onToggleSelect={() => onToggleVideoSelect(vid.id)}
+                onEdit={() => onEditVideo(vid)}
+                onDelete={() => onDeleteVideo(vid)}
+              />
+            ))}
+            {items.length === 0 && (
+              <div className="py-3 text-sm text-[var(--color-wave)] italic">
+                No unassigned videos.
+              </div>
+            )}
+          </SortableContext>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Drag overlay previews ---------- */
+
+function CategoryDragPreview({ cat, itemCount }: { cat: VideoCategory; itemCount: number }): React.JSX.Element {
+  return (
+    <div className="glass rounded-xl px-4 py-3 flex items-center gap-3 shadow-2xl opacity-90 scale-[1.02] border border-[var(--color-gold)]/40">
+      <GripVertical className="w-4 h-4 text-[var(--color-wave)]" />
+      <h3 className="font-semibold text-[var(--color-pearl)]">{cat.name}</h3>
+      <span className="px-2 py-0.5 rounded-full bg-[var(--color-surf)]/20 text-[var(--color-surf)] text-xs">
+        {itemCount} video{itemCount !== 1 ? 's' : ''}
+      </span>
+    </div>
+  );
+}
+
+function VideoDragPreview({ vid }: { vid: TrainingVideo }): React.JSX.Element {
+  return (
+    <div className="glass rounded-lg px-3 py-2.5 flex items-center gap-3 shadow-2xl opacity-90 scale-[1.02] border border-[var(--color-gold)]/40">
+      <GripVertical className="w-4 h-4 text-[var(--color-wave)]" />
+      <div className="flex-1 min-w-0">
+        <h4 className="text-sm font-semibold truncate text-[var(--color-pearl)]">
+          {vid.title}
+        </h4>
+        <div className="flex items-center gap-2 mt-0.5 text-xs text-[var(--color-wave)]">
+          <span className="text-[var(--color-surf)] truncate max-w-xs">{vid.url}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- main component ---------- */
 
 export default function AdminTrainingPage(): React.JSX.Element {
-  const [subTab, setSubTab] = useState<'categories' | 'events' | 'videos'>('categories');
+  const [subTab, setSubTab] = useState<'events' | 'videos'>('videos');
 
   // Video categories state
   const [videoCategories, setVideoCategories] = useState<VideoCategory[]>([]);
   const [videoCategoriesLoading, setVideoCategoriesLoading] = useState(true);
   const [editingVideoCategory, setEditingVideoCategory] = useState<Partial<VideoCategory> | null>(null);
-  const [videoCounts, setVideoCounts] = useState<Record<string, number>>({});
-  const [filterVideoCategoryId, setFilterVideoCategoryId] = useState<string>('all');
-  const [selectedVideoIds, setSelectedVideoIds] = useState<Set<string>>(new Set());
 
   // Events state
   const [events, setEvents] = useState<TrainingEvent[]>([]);
@@ -176,15 +460,48 @@ export default function AdminTrainingPage(): React.JSX.Element {
   const [videosLoading, setVideosLoading] = useState(true);
   const [editingVideo, setEditingVideo] = useState<Partial<TrainingVideo> | null>(null);
 
+  // Selection / bulk
+  const [selectedVideoIds, setSelectedVideoIds] = useState<Set<string>>(new Set());
+
   // Shared state
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // dnd-kit sensors
+  // DnD state
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [activeDragType, setActiveDragType] = useState<'category' | 'item' | null>(null);
+  const [overCategoryId, setOverCategoryId] = useState<string | null>(null);
+
+  // Expand/collapse state for categories
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
+
+  // Sensors
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+
+  // Derived: videos grouped by category
+  const videosByCategory = useMemo(() => {
+    const map: Record<string, TrainingVideo[]> = {};
+    for (const cat of videoCategories) {
+      map[cat.id] = videos
+        .filter((v) => v.category_id === cat.id)
+        .sort((a, b) => a.sort_order - b.sort_order);
+    }
+    map['unassigned'] = videos.filter(
+      (v) => !v.category_id || !videoCategories.find((c) => c.id === v.category_id),
+    );
+    return map;
+  }, [videoCategories, videos]);
+
+  // On first load, expand all categories
+  useEffect(() => {
+    if (videoCategories.length > 0 && expandedCats.size === 0) {
+      setExpandedCats(new Set(videoCategories.map((c) => c.id)));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoCategories]);
 
   useEffect(() => {
     fetchVideoCategories();
@@ -226,84 +543,200 @@ export default function AdminTrainingPage(): React.JSX.Element {
       .select('*')
       .order('sort_order', { ascending: true });
     if (!error && data) {
-      const vids = data as TrainingVideo[];
-      setVideos(vids);
-      // Compute video counts per category
-      const counts: Record<string, number> = {};
-      vids.forEach((v) => {
-        counts[v.category_id] = (counts[v.category_id] || 0) + 1;
-      });
-      setVideoCounts(counts);
+      setVideos(data as TrainingVideo[]);
     }
     setVideosLoading(false);
   }
 
-  /* --- Drag-to-reorder handlers --- */
+  /* ---------- expand/collapse ---------- */
 
-  async function handleVideoCategoryReorder(event: DragEndEvent): Promise<void> {
+  const toggleExpand = useCallback((catId: string) => {
+    setExpandedCats((prev) => {
+      const next = new Set(prev);
+      if (next.has(catId)) {
+        next.delete(catId);
+      } else {
+        next.add(catId);
+      }
+      return next;
+    });
+  }, []);
+
+  /* ---------- DnD handlers ---------- */
+
+  function findContainerForVideo(itemId: UniqueIdentifier): string | null {
+    const strId = String(itemId);
+    if (strId.startsWith('cat-')) return null;
+
+    for (const cat of videoCategories) {
+      const items = videosByCategory[cat.id] || [];
+      if (items.find((v) => v.id === strId)) return cat.id;
+    }
+    const unassigned = videosByCategory['unassigned'] || [];
+    if (unassigned.find((v) => v.id === strId)) return 'unassigned';
+    return null;
+  }
+
+  function handleDragStart(event: DragStartEvent): void {
+    const { active } = event;
+    const type = active.data.current?.type as 'category' | 'item' | undefined;
+    setActiveId(active.id);
+    setActiveDragType(type || null);
+  }
+
+  function handleDragOver(event: DragOverEvent): void {
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    if (!over) {
+      setOverCategoryId(null);
+      return;
+    }
 
-    const oldIndex = videoCategories.findIndex((c) => c.id === active.id);
-    const newIndex = videoCategories.findIndex((c) => c.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
+    const activeType = active.data.current?.type;
 
-    const reordered = arrayMove(videoCategories, oldIndex, newIndex).map((cat, i) => ({ ...cat, sort_order: i + 1 }));
-    setVideoCategories(reordered);
+    // If dragging a category, we don't do cross-container logic
+    if (activeType === 'category') {
+      setOverCategoryId(null);
+      return;
+    }
 
-    // Batch-update sort_order for each category
-    const updates = reordered.map((cat, i) => (
-      supabase.from('video_categories').update({ sort_order: i + 1 }).eq('id', cat.id)
-    ));
+    // Dragging an item
+    const activeVideoId = String(active.id);
+    const overId = String(over.id);
 
-    const results = await Promise.all(updates);
-    const failed = results.some((r) => r.error);
-    if (failed) {
-      setFeedback({ type: 'error', message: 'Failed to save new order. Refreshing...' });
-      fetchVideoCategories();
-    } else {
-      setFeedback({ type: 'success', message: 'Order saved.' });
+    // Determine the target container
+    let targetContainer: string | null = null;
+
+    // Check if hovering over the unassigned droppable zone
+    if (overId === 'unassigned-drop' || over.data.current?.type === 'unassigned-zone') {
+      targetContainer = 'unassigned';
+    }
+    // Check if over a category bar
+    else if (overId.startsWith('cat-')) {
+      targetContainer = fromCatSortId(overId);
+    }
+    // Check if over another item
+    else {
+      targetContainer = findContainerForVideo(over.id);
+    }
+
+    setOverCategoryId(targetContainer);
+
+    if (!targetContainer) return;
+
+    // Find the source container
+    const sourceContainer = findContainerForVideo(active.id);
+    if (!sourceContainer || sourceContainer === targetContainer) return;
+
+    // Move the video to the new container in local state
+    setVideos((prev) =>
+      prev.map((v) => {
+        if (v.id === activeVideoId) {
+          return {
+            ...v,
+            category_id: targetContainer === 'unassigned' ? '' : targetContainer!,
+          };
+        }
+        return v;
+      }),
+    );
+  }
+
+  async function handleDragEnd(event: DragEndEvent): Promise<void> {
+    const { active, over } = event;
+    setActiveId(null);
+    setActiveDragType(null);
+    setOverCategoryId(null);
+
+    if (!over) return;
+
+    const activeType = active.data.current?.type;
+
+    if (activeType === 'category') {
+      // Reorder categories
+      const activeRealId = fromCatSortId(active.id);
+      const overRealId = fromCatSortId(over.id);
+      if (activeRealId === overRealId) return;
+
+      const oldIndex = videoCategories.findIndex((c) => c.id === activeRealId);
+      const newIndex = videoCategories.findIndex((c) => c.id === overRealId);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(videoCategories, oldIndex, newIndex).map((cat, i) => ({
+        ...cat,
+        sort_order: i + 1,
+      }));
+      setVideoCategories(reordered);
+
+      const updates = reordered.map((cat, i) =>
+        supabase.from('video_categories').update({ sort_order: i + 1 }).eq('id', cat.id),
+      );
+      const results = await Promise.all(updates);
+      const failed = results.some((r) => r.error);
+      if (failed) {
+        setFeedback({ type: 'error', message: 'Failed to save new order. Refreshing...' });
+        fetchVideoCategories();
+      } else {
+        setFeedback({ type: 'success', message: 'Category order saved.' });
+      }
+    } else if (activeType === 'item') {
+      // Item drag ended -- persist the current state
+      const activeVideoId = String(active.id);
+      const vid = videos.find((v) => v.id === activeVideoId);
+      if (!vid) return;
+
+      // Find the container for this item (may have been changed in onDragOver)
+      const container = vid.category_id || 'unassigned';
+      const containerItems = (videosByCategory[container] || []).filter(
+        (v) => v.id !== activeVideoId,
+      );
+
+      // Determine position within the container
+      const overId = String(over.id);
+      let newIndex = containerItems.length; // default: end
+
+      // If dropped on another item in the same container
+      const overItemIndex = containerItems.findIndex((v) => v.id === overId);
+      if (overItemIndex !== -1) {
+        newIndex = overItemIndex;
+      }
+
+      // Insert item at position
+      const finalItems = [...containerItems];
+      finalItems.splice(newIndex, 0, vid);
+
+      // Update sort_order for all items in this container
+      const updatedVideos = finalItems.map((v, i) => ({ ...v, sort_order: i + 1 }));
+
+      // Update local state
+      setVideos((prev) => {
+        const rest = prev.filter(
+          (v) => !updatedVideos.find((u) => u.id === v.id),
+        );
+        return [...rest, ...updatedVideos];
+      });
+
+      // Persist to Supabase: update sort_order and category_id
+      const updates = updatedVideos.map((v, i) =>
+        supabase
+          .from('training_videos')
+          .update({
+            sort_order: i + 1,
+            category_id: container === 'unassigned' ? '' : container,
+          })
+          .eq('id', v.id),
+      );
+      const results = await Promise.all(updates);
+      const failed = results.some((r) => r.error);
+      if (failed) {
+        setFeedback({ type: 'error', message: 'Failed to save order. Refreshing...' });
+        fetchVideos();
+      } else {
+        setFeedback({ type: 'success', message: 'Order saved.' });
+      }
     }
   }
 
-  async function handleVideoReorder(event: DragEndEvent): Promise<void> {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    // Work within the filtered list
-    const workingList = filterVideoCategoryId === 'all'
-      ? videos
-      : videos.filter((v) => v.category_id === filterVideoCategoryId);
-
-    const oldIndex = workingList.findIndex((v) => v.id === active.id);
-    const newIndex = workingList.findIndex((v) => v.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    const reorderedFiltered = arrayMove(workingList, oldIndex, newIndex).map((vid, i) => ({ ...vid, sort_order: i + 1 }));
-
-    if (filterVideoCategoryId === 'all') {
-      setVideos(reorderedFiltered);
-    } else {
-      const otherVids = videos.filter((v) => v.category_id !== filterVideoCategoryId);
-      setVideos([...otherVids, ...reorderedFiltered]);
-    }
-
-    // Batch-update sort_order for reordered items
-    const updates = reorderedFiltered.map((vid, i) => (
-      supabase.from('training_videos').update({ sort_order: i + 1 }).eq('id', vid.id)
-    ));
-
-    const results = await Promise.all(updates);
-    const failed = results.some((r) => r.error);
-    if (failed) {
-      setFeedback({ type: 'error', message: 'Failed to save new order. Refreshing...' });
-      fetchVideos();
-    } else {
-      setFeedback({ type: 'success', message: 'Order saved.' });
-    }
-  }
-
-  /* --- Checkbox / bulk move --- */
+  /* ---------- Checkbox / bulk move ---------- */
 
   function toggleVideoSelection(id: string): void {
     setSelectedVideoIds((prev) => {
@@ -334,14 +767,17 @@ export default function AdminTrainingPage(): React.JSX.Element {
     if (error) {
       setFeedback({ type: 'error', message: 'Failed to move videos.' });
     } else {
-      setFeedback({ type: 'success', message: `Moved ${ids.length} video${ids.length > 1 ? 's' : ''}.` });
+      setFeedback({
+        type: 'success',
+        message: `Moved ${ids.length} video${ids.length > 1 ? 's' : ''}.`,
+      });
       deselectAllVideos();
       fetchVideos();
     }
     setSaving(false);
   }
 
-  /* --- Video category CRUD --- */
+  /* ---------- Video category CRUD ---------- */
 
   async function handleSaveVideoCategory(): Promise<void> {
     if (!editingVideoCategory || !editingVideoCategory.name?.trim()) {
@@ -379,9 +815,12 @@ export default function AdminTrainingPage(): React.JSX.Element {
   }
 
   async function handleDeleteVideoCategory(cat: VideoCategory): Promise<void> {
-    const count = videoCounts[cat.id] || 0;
+    const count = (videosByCategory[cat.id] || []).length;
     if (count > 0) {
-      setFeedback({ type: 'error', message: `Cannot delete "${cat.name}" \u2014 it has ${count} video${count > 1 ? 's' : ''}. Move or delete them first.` });
+      setFeedback({
+        type: 'error',
+        message: `Cannot delete "${cat.name}" \u2014 it has ${count} video${count > 1 ? 's' : ''}. Move or delete them first.`,
+      });
       return;
     }
     if (!window.confirm(`Delete category "${cat.name}"? This cannot be undone.`)) return;
@@ -394,7 +833,8 @@ export default function AdminTrainingPage(): React.JSX.Element {
     }
   }
 
-  // --- Event CRUD ---
+  /* ---------- Event CRUD ---------- */
+
   async function handleSaveEvent(): Promise<void> {
     if (!editingEvent || !editingEvent.title?.trim() || !editingEvent.event_date) {
       setFeedback({ type: 'error', message: 'Title and date are required.' });
@@ -451,7 +891,8 @@ export default function AdminTrainingPage(): React.JSX.Element {
     }
   }
 
-  // --- Video CRUD ---
+  /* ---------- Video CRUD ---------- */
+
   async function handleSaveVideo(): Promise<void> {
     if (!editingVideo || !editingVideo.title?.trim() || !editingVideo.url?.trim() || !editingVideo.category_id) {
       setFeedback({ type: 'error', message: 'Title, URL, and category are required.' });
@@ -490,9 +931,9 @@ export default function AdminTrainingPage(): React.JSX.Element {
     setSaving(false);
   }
 
-  async function handleDeleteVideo(id: string): Promise<void> {
-    if (!window.confirm('Delete this video? This cannot be undone.')) return;
-    const { error } = await supabase.from('training_videos').delete().eq('id', id);
+  async function handleDeleteVideo(vid: TrainingVideo): Promise<void> {
+    if (!window.confirm(`Delete "${vid.title}"? This cannot be undone.`)) return;
+    const { error } = await supabase.from('training_videos').delete().eq('id', vid.id);
     if (error) {
       setFeedback({ type: 'error', message: 'Failed to delete video.' });
     } else {
@@ -501,7 +942,21 @@ export default function AdminTrainingPage(): React.JSX.Element {
     }
   }
 
-  /* --- helpers --- */
+  /* ---------- open helpers ---------- */
+
+  function openNewVideo(presetCategoryId?: string): void {
+    setEditingVideo({
+      ...emptyVideo,
+      sort_order: Math.max(...videos.map((v) => v.sort_order), 0) + 1,
+      category_id: presetCategoryId || (videoCategories.length > 0 ? videoCategories[0].id : ''),
+    });
+  }
+
+  function openEditVideo(vid: TrainingVideo): void {
+    setEditingVideo(vid);
+  }
+
+  /* ---------- helpers ---------- */
 
   function formatEventDate(dateStr: string): string {
     const [y, m, d] = dateStr.split('-').map(Number);
@@ -512,16 +967,29 @@ export default function AdminTrainingPage(): React.JSX.Element {
     });
   }
 
-  function getVideoCategoryName(categoryId: string): string {
-    return videoCategories.find((c) => c.id === categoryId)?.name || 'Unknown';
-  }
+  /* ---------- DragOverlay data ---------- */
 
-  const filteredVideos = filterVideoCategoryId === 'all'
-    ? videos
-    : videos.filter((v) => v.category_id === filterVideoCategoryId);
+  const activeCat = useMemo(() => {
+    if (!activeId || activeDragType !== 'category') return null;
+    const realId = fromCatSortId(activeId);
+    return videoCategories.find((c) => c.id === realId) || null;
+  }, [activeId, activeDragType, videoCategories]);
 
-  const loading = subTab === 'categories' ? videoCategoriesLoading : subTab === 'events' ? eventsLoading : videosLoading;
+  const activeVid = useMemo(() => {
+    if (!activeId || activeDragType !== 'item') return null;
+    return videos.find((v) => v.id === String(activeId)) || null;
+  }, [activeId, activeDragType, videos]);
+
+  /* ---------- render ---------- */
+
   const isEditing = editingVideoCategory || editingEvent || editingVideo;
+  const loading = subTab === 'events' ? eventsLoading : (videoCategoriesLoading || videosLoading);
+
+  // Build sortable IDs for the outer category context
+  const categorySortIds = useMemo(
+    () => videoCategories.map((c) => toCatSortId(c.id)),
+    [videoCategories],
+  );
 
   return (
     <section className="pt-32 pb-20">
@@ -534,34 +1002,38 @@ export default function AdminTrainingPage(): React.JSX.Element {
             </Link>
             <h1 className="text-2xl md:text-3xl font-bold">Training</h1>
           </div>
-          <button
-            onClick={() =>
-              subTab === 'categories'
-                ? setEditingVideoCategory({ ...({ name: '', sort_order: 0, status: 'published' } as Partial<VideoCategory>), sort_order: Math.max(...videoCategories.map((c) => c.sort_order), 0) + 1 })
-                : subTab === 'events'
+          <div className="flex items-center gap-2">
+            {subTab === 'videos' && (
+              <button
+                onClick={() =>
+                  setEditingVideoCategory({
+                    name: '',
+                    sort_order: Math.max(...videoCategories.map((c) => c.sort_order), 0) + 1,
+                    status: 'published',
+                  } as Partial<VideoCategory>)
+                }
+                className="btn-primary flex items-center gap-2 !px-4 !py-2 text-sm"
+              >
+                <Plus className="w-4 h-4" />
+                New Category
+              </button>
+            )}
+            <button
+              onClick={() =>
+                subTab === 'events'
                   ? setEditingEvent({ ...emptyEvent })
-                  : setEditingVideo({ ...emptyVideo, sort_order: Math.max(...videos.map((v) => v.sort_order), 0) + 1, category_id: videoCategories.length > 0 ? videoCategories[0].id : '' })
-            }
-            className="btn-primary flex items-center gap-2 !px-4 !py-2 text-sm"
-          >
-            <Plus className="w-4 h-4" />
-            {subTab === 'categories' ? 'New Category' : subTab === 'events' ? 'New Event' : 'Add Video'}
-          </button>
+                  : openNewVideo()
+              }
+              className="btn-primary flex items-center gap-2 !px-4 !py-2 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              {subTab === 'events' ? 'New Event' : 'Add Video'}
+            </button>
+          </div>
         </div>
 
         {/* Sub-tabs */}
         <div className="flex gap-2 mb-8">
-          <button
-            onClick={() => setSubTab('categories')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              subTab === 'categories'
-                ? 'bg-[var(--color-gold)] text-[var(--color-abyss)]'
-                : 'glass text-[var(--color-mist)] hover:text-[var(--color-pearl)]'
-            }`}
-          >
-            <FolderOpen className="w-4 h-4" />
-            Categories
-          </button>
           <button
             onClick={() => setSubTab('events')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -616,33 +1088,6 @@ export default function AdminTrainingPage(): React.JSX.Element {
           </div>
         )}
 
-        {/* Categories list */}
-        {subTab === 'categories' && !videoCategoriesLoading && !isEditing && (
-          <>
-            {videoCategories.length > 0 && <p className="text-xs text-[var(--color-wave)] mb-2">Drag items to reorder</p>}
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleVideoCategoryReorder}>
-              <SortableContext items={videoCategories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-                <div className="glass rounded-xl overflow-hidden divide-y divide-[var(--color-ocean)]/20">
-                  {videoCategories.map((cat) => (
-                    <SortableVideoCategoryItem
-                      key={cat.id}
-                      cat={cat}
-                      videoCount={videoCounts[cat.id] || 0}
-                      onEdit={() => setEditingVideoCategory(cat)}
-                      onDelete={() => handleDeleteVideoCategory(cat)}
-                    />
-                  ))}
-                  {videoCategories.length === 0 && (
-                    <div className="p-12 text-center">
-                      <p className="text-[var(--color-mist)]">No categories yet. Click "New Category" to create one.</p>
-                    </div>
-                  )}
-                </div>
-              </SortableContext>
-            </DndContext>
-          </>
-        )}
-
         {/* Events list */}
         {subTab === 'events' && !eventsLoading && !isEditing && (
           <div className="glass rounded-xl overflow-hidden divide-y divide-[var(--color-ocean)]/20">
@@ -681,53 +1126,80 @@ export default function AdminTrainingPage(): React.JSX.Element {
           </div>
         )}
 
-        {/* Videos list */}
-        {subTab === 'videos' && !videosLoading && !isEditing && (
+        {/* Videos grouped list */}
+        {subTab === 'videos' && !videoCategoriesLoading && !videosLoading && !isEditing && (
           <>
-            {/* Category filter */}
-            <div className="mb-4">
-              <select
-                value={filterVideoCategoryId}
-                onChange={(e) => {
-                  setFilterVideoCategoryId(e.target.value);
-                  setSelectedVideoIds(new Set());
-                }}
-                className={`${inputClass} sm:w-64`}
-              >
-                <option value="all">All Categories</option>
-                {videoCategories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
+            {(videoCategories.length > 0 || videos.length > 0) && (
+              <p className="text-xs text-[var(--color-wave)] mb-3">
+                Drag to reorder categories and videos &middot; Check items to bulk move
+              </p>
+            )}
 
-            {filteredVideos.length > 0 && <p className="text-xs text-[var(--color-wave)] mb-2">Drag items to reorder &middot; Check items to bulk move</p>}
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleVideoReorder}>
-              <SortableContext items={filteredVideos.map((v) => v.id)} strategy={verticalListSortingStrategy}>
-                <div className="glass rounded-xl overflow-hidden divide-y divide-[var(--color-ocean)]/20">
-                  {filteredVideos.map((vid) => (
-                    <SortableVideoItem
-                      key={vid.id}
-                      vid={vid}
-                      categoryName={getVideoCategoryName(vid.category_id)}
-                      isSelected={selectedVideoIds.has(vid.id)}
-                      onToggleSelect={() => toggleVideoSelection(vid.id)}
-                      onEdit={() => setEditingVideo(vid)}
-                      onDelete={() => handleDeleteVideo(vid.id)}
-                    />
-                  ))}
-                  {filteredVideos.length === 0 && (
-                    <div className="p-12 text-center">
-                      <p className="text-[var(--color-mist)]">
-                        {filterVideoCategoryId === 'all'
-                          ? 'No videos yet. Click "Add Video" to create one.'
-                          : 'No videos in this category.'}
-                      </p>
-                    </div>
-                  )}
-                </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
+            >
+              {/* Outer sortable context for category ordering */}
+              <SortableContext
+                items={categorySortIds}
+                strategy={verticalListSortingStrategy}
+              >
+                {videoCategories.map((cat) => (
+                  <SortableVideoCategoryGroup
+                    key={cat.id}
+                    cat={cat}
+                    items={videosByCategory[cat.id] || []}
+                    isExpanded={expandedCats.has(cat.id)}
+                    onToggleExpand={() => toggleExpand(cat.id)}
+                    onEditCategory={() => setEditingVideoCategory(cat)}
+                    onDeleteCategory={() => handleDeleteVideoCategory(cat)}
+                    onAddVideo={() => openNewVideo(cat.id)}
+                    selectedVideoIds={selectedVideoIds}
+                    onToggleVideoSelect={toggleVideoSelection}
+                    onEditVideo={openEditVideo}
+                    onDeleteVideo={handleDeleteVideo}
+                    activeDragType={activeDragType}
+                    overCategoryId={overCategoryId}
+                  />
+                ))}
               </SortableContext>
+
+              {/* Unassigned zone */}
+              <UnassignedVideoZone
+                items={videosByCategory['unassigned'] || []}
+                selectedVideoIds={selectedVideoIds}
+                onToggleVideoSelect={toggleVideoSelection}
+                onEditVideo={openEditVideo}
+                onDeleteVideo={handleDeleteVideo}
+                activeDragType={activeDragType}
+                overCategoryId={overCategoryId}
+              />
+
+              {/* Drag overlay rendered via portal */}
+              {createPortal(
+                <DragOverlay>
+                  {activeCat && (
+                    <CategoryDragPreview
+                      cat={activeCat}
+                      itemCount={(videosByCategory[activeCat.id] || []).length}
+                    />
+                  )}
+                  {activeVid && <VideoDragPreview vid={activeVid} />}
+                </DragOverlay>,
+                document.body,
+              )}
             </DndContext>
+
+            {videoCategories.length === 0 && videos.length === 0 && (
+              <div className="glass rounded-xl p-12 text-center">
+                <p className="text-[var(--color-mist)]">
+                  No categories or videos yet. Create a category to get started.
+                </p>
+              </div>
+            )}
 
             {/* Floating bulk move action bar */}
             <AnimatePresence>
@@ -738,19 +1210,33 @@ export default function AdminTrainingPage(): React.JSX.Element {
                   exit={{ opacity: 0, y: 20 }}
                   className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 glass rounded-xl px-5 py-3 flex items-center gap-4 shadow-lg border border-[var(--color-gold)]/30"
                 >
-                  <span className="text-sm font-medium">{selectedVideoIds.size} selected</span>
+                  <span className="text-sm font-medium">
+                    {selectedVideoIds.size} selected
+                  </span>
                   <select
-                    onChange={(e) => { if (e.target.value) handleBulkMoveVideos(e.target.value); e.target.value = ''; }}
+                    onChange={(e) => {
+                      if (e.target.value) handleBulkMoveVideos(e.target.value);
+                      e.target.value = '';
+                    }}
                     className="px-3 py-1.5 rounded-lg bg-[var(--color-gold)] text-[var(--color-abyss)] text-sm font-medium cursor-pointer"
                     defaultValue=""
                     disabled={saving}
                   >
-                    <option value="" disabled>Move to...</option>
-                    {videoCategories.filter((c) => c.status === 'published').map((cat) => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
+                    <option value="" disabled>
+                      Move to...
+                    </option>
+                    {videoCategories
+                      .filter((c) => c.status === 'published')
+                      .map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
                   </select>
-                  <button onClick={deselectAllVideos} className="text-sm text-[var(--color-wave)] hover:text-[var(--color-pearl)] transition-colors">
+                  <button
+                    onClick={deselectAllVideos}
+                    className="text-sm text-[var(--color-wave)] hover:text-[var(--color-pearl)] transition-colors"
+                  >
                     Deselect all
                   </button>
                 </motion.div>

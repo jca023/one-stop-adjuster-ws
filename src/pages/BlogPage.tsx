@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, Tag, User, ChevronRight, X, PenLine } from 'lucide-react';
+import { Calendar, Clock, Tag, User, ChevronRight, X, PenLine, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { Post } from '../lib/supabase';
+import type { Post, BlogCategory } from '../lib/supabase';
 
 const containerVariants = {
   hidden: {},
@@ -16,25 +16,49 @@ const cardVariants = {
 
 export default function BlogPage(): React.JSX.Element {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedPost, setExpandedPost] = useState<Post | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchPosts();
+    async function fetchData(): Promise<void> {
+      const [postsRes, catsRes] = await Promise.all([
+        supabase
+          .from('posts')
+          .select('*')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('blog_categories')
+          .select('*')
+          .eq('status', 'published')
+          .order('sort_order', { ascending: true }),
+      ]);
+      if (postsRes.data) setPosts(postsRes.data);
+      if (catsRes.data) setCategories(catsRes.data as BlogCategory[]);
+      setLoading(false);
+    }
+    fetchData();
   }, []);
 
-  async function fetchPosts(): Promise<void> {
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('status', 'published')
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setPosts(data);
+  const filteredPosts = useMemo(() => {
+    let result = posts;
+    if (activeCategory) {
+      result = result.filter((p) => p.category_id === activeCategory || p.category === categories.find((c) => c.id === activeCategory)?.name);
     }
-    setLoading(false);
-  }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          (p.excerpt && p.excerpt.toLowerCase().includes(q)) ||
+          p.content.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [posts, activeCategory, searchQuery, categories]);
 
   function formatDate(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -61,6 +85,57 @@ export default function BlogPage(): React.JSX.Element {
           </p>
         </motion.div>
 
+        {/* Search + Category Filter */}
+        {!loading && posts.length > 0 && (
+          <div className="max-w-4xl mx-auto mb-8 space-y-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-wave)]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search posts..."
+                className="w-full pl-11 pr-10 py-3 rounded-xl bg-[var(--color-deep)] border border-[var(--color-ocean)]/30 focus:border-[var(--color-gold)] outline-none transition-colors text-sm placeholder:text-[var(--color-wave)]"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors"
+                >
+                  <X className="w-4 h-4 text-[var(--color-wave)]" />
+                </button>
+              )}
+            </div>
+            {categories.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setActiveCategory(null)}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    !activeCategory
+                      ? 'bg-[var(--color-gold)] text-[var(--color-abyss)]'
+                      : 'glass text-[var(--color-mist)] hover:text-[var(--color-pearl)]'
+                  }`}
+                >
+                  All
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      activeCategory === cat.id
+                        ? 'bg-[var(--color-gold)] text-[var(--color-abyss)]'
+                        : 'glass text-[var(--color-mist)] hover:text-[var(--color-pearl)]'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Loading skeleton */}
         {loading && (
           <div className="max-w-4xl mx-auto space-y-6">
@@ -74,15 +149,30 @@ export default function BlogPage(): React.JSX.Element {
           </div>
         )}
 
+        {/* No search results */}
+        {!loading && posts.length > 0 && filteredPosts.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass rounded-2xl p-12 text-center max-w-2xl mx-auto"
+          >
+            <Search className="w-12 h-12 text-[var(--color-wave)] mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">No Posts Found</h3>
+            <p className="text-[var(--color-mist)]">
+              No posts match your{activeCategory ? ' category filter' : ''}{activeCategory && searchQuery.trim() ? ' and' : ''}{searchQuery.trim() ? ' search' : ''}. Try adjusting your filters.
+            </p>
+          </motion.div>
+        )}
+
         {/* Posts grid */}
-        {!loading && posts.length > 0 && (
+        {!loading && filteredPosts.length > 0 && (
           <motion.div
             className="max-w-4xl mx-auto space-y-6"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <motion.button
                 key={post.id}
                 variants={cardVariants}
