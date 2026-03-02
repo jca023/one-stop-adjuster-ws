@@ -13,15 +13,6 @@ const tabs = [
   { id: 'support', label: 'Support', icon: HelpCircle },
 ];
 
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
 
 export default function ResourcesPage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState('docs');
