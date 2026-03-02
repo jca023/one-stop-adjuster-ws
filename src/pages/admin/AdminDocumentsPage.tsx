@@ -260,7 +260,7 @@ export default function AdminDocumentsPage(): React.JSX.Element {
     const newIndex = categories.findIndex((c) => c.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const reordered = arrayMove(categories, oldIndex, newIndex);
+    const reordered = arrayMove(categories, oldIndex, newIndex).map((cat, i) => ({ ...cat, sort_order: i + 1 }));
     setCategories(reordered);
 
     // Batch-update sort_order for each category
@@ -291,13 +291,11 @@ export default function AdminDocumentsPage(): React.JSX.Element {
     const newIndex = workingList.findIndex((d) => d.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const reorderedFiltered = arrayMove(workingList, oldIndex, newIndex);
+    const reorderedFiltered = arrayMove(workingList, oldIndex, newIndex).map((doc, i) => ({ ...doc, sort_order: i + 1 }));
 
     if (filterCategoryId === 'all') {
-      // Replace entire documents array
       setDocuments(reorderedFiltered);
     } else {
-      // Merge reordered filtered items back into the full array
       const otherDocs = documents.filter((d) => d.category_id !== filterCategoryId);
       setDocuments([...otherDocs, ...reorderedFiltered]);
     }

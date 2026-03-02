@@ -248,7 +248,7 @@ export default function AdminTrainingPage(): React.JSX.Element {
     const newIndex = videoCategories.findIndex((c) => c.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const reordered = arrayMove(videoCategories, oldIndex, newIndex);
+    const reordered = arrayMove(videoCategories, oldIndex, newIndex).map((cat, i) => ({ ...cat, sort_order: i + 1 }));
     setVideoCategories(reordered);
 
     // Batch-update sort_order for each category
@@ -279,13 +279,11 @@ export default function AdminTrainingPage(): React.JSX.Element {
     const newIndex = workingList.findIndex((v) => v.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const reorderedFiltered = arrayMove(workingList, oldIndex, newIndex);
+    const reorderedFiltered = arrayMove(workingList, oldIndex, newIndex).map((vid, i) => ({ ...vid, sort_order: i + 1 }));
 
     if (filterVideoCategoryId === 'all') {
-      // Replace entire videos array
       setVideos(reorderedFiltered);
     } else {
-      // Merge reordered filtered items back into the full array
       const otherVids = videos.filter((v) => v.category_id !== filterVideoCategoryId);
       setVideos([...otherVids, ...reorderedFiltered]);
     }
