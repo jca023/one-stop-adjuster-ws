@@ -12,10 +12,19 @@ export interface Post {
   excerpt: string | null;
   author: string;
   category: string;
+  category_id: string | null;
   status: string;
   read_time: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface BlogCategory {
+  id: string;
+  name: string;
+  sort_order: number;
+  status: 'draft' | 'published';
+  created_at: string;
 }
 
 export interface Testimonial {
