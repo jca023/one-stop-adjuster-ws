@@ -88,7 +88,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
             >
               <Link
                 to={card.href}
-                className="glass rounded-2xl p-6 flex flex-col group hover:border-[var(--color-gold)]/30 border border-transparent transition-all block"
+                className="glass rounded-2xl p-6 flex flex-col h-full group hover:border-[var(--color-gold)]/30 border border-transparent transition-all block"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors">

@@ -117,9 +117,9 @@ export default function ResourcesPage(): React.JSX.Element {
         {activeTab === 'docs' && (
           <motion.div
             className="max-w-3xl mx-auto space-y-8"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
           >
             {categories.map((cat) => {
               const catDocs = docs.filter((d) => d.category_id === cat.id);
@@ -129,9 +129,8 @@ export default function ResourcesPage(): React.JSX.Element {
                   <h3 className="text-lg font-semibold text-[var(--color-pearl)] mb-3">{cat.name}</h3>
                   <div className="space-y-3">
                     {catDocs.map((doc) => (
-                      <motion.a
+                      <a
                         key={doc.id}
-                        variants={itemVariants}
                         href={doc.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -147,7 +146,7 @@ export default function ResourcesPage(): React.JSX.Element {
                           </div>
                         </div>
                         <span className="text-xs text-[var(--color-wave)] bg-[var(--color-ocean)]/10 px-2 py-1 rounded uppercase">{doc.file_type}</span>
-                      </motion.a>
+                      </a>
                     ))}
                   </div>
                 </div>
