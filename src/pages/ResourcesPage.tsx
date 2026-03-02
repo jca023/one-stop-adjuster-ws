@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { BookOpen, Video, FileText, HelpCircle, ExternalLink, Download, ArrowRight, Clock, User } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BookOpen, Video, FileText, HelpCircle, ExternalLink, Download, ArrowRight, Clock, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import type { Post } from '../lib/supabase';
+import type { Post, TrainingVideo } from '../lib/supabase';
+import TrainingCalendar from '../components/TrainingCalendar';
 
 const tabs = [
   { id: 'docs', label: 'Documentation', icon: BookOpen },
@@ -16,33 +17,6 @@ const documents = [
   { title: 'Getting Started Guide', description: 'Complete walkthrough for new users', type: 'PDF', url: 'https://www.one-stop-adjuster.com/s/Getting-Started-Guide-Verisk2.pdf' },
   { title: 'OSA Pocket Guide', description: 'Quick reference guide for field adjusters', type: 'PDF', url: 'https://www.one-stop-adjuster.com/s/OSA-Pocket-Guide-9-25-2025.pdf' },
   { title: 'OSA Process', description: 'End-to-end claims process documentation', type: 'DOCX', url: 'https://www.one-stop-adjuster.com/s/OSA-Process.docx' },
-];
-
-const trainingVideos = [
-  { week: 1, videos: [
-    { title: 'Getting Started', url: 'https://youtu.be/afyOXaXMU2k' },
-    { title: 'Deep Learning', url: 'https://youtu.be/wFcaGDzW9_Y' },
-  ]},
-  { week: 2, videos: [
-    { title: 'The Process', url: 'https://youtu.be/k32_uqy3A5Y' },
-    { title: 'Learning the Flow', url: 'https://youtu.be/1iF8XRJpark' },
-  ]},
-  { week: 3, videos: [
-    { title: 'Getting Started w/ OSA', url: 'https://youtu.be/nPARGmUkKKw' },
-    { title: 'Integrating - Inspection Tools', url: 'https://youtu.be/vPGe9ZIDON0' },
-  ]},
-  { week: 4, videos: [
-    { title: 'Full Cycle', url: 'https://youtu.be/O3z4oQhDLt4' },
-    { title: 'Cycling Through a Claim', url: 'https://youtu.be/yqYmlZ1Zers' },
-  ]},
-  { week: 5, videos: [
-    { title: 'Simple Start', url: 'https://youtu.be/ToAPldXdc64' },
-    { title: 'Finishing the Claim', url: 'https://youtu.be/ndor2yDy7dA' },
-  ]},
-  { week: 6, videos: [
-    { title: 'The Foundation', url: 'https://youtu.be/XBJcSLWWoA8' },
-    { title: 'Closing the Claim', url: 'https://youtu.be/50ZVJDzkC2w' },
-  ]},
 ];
 
 const containerVariants = {
@@ -58,6 +32,8 @@ const itemVariants = {
 export default function ResourcesPage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState('docs');
   const [recentPosts, setRecentPosts] = useState<Post[]>([]);
+  const [trainingVideos, setTrainingVideos] = useState<TrainingVideo[]>([]);
+  const [videosExpanded, setVideosExpanded] = useState(false);
 
   useEffect(() => {
     async function fetchRecentPosts(): Promise<void> {
@@ -71,6 +47,19 @@ export default function ResourcesPage(): React.JSX.Element {
     }
     fetchRecentPosts();
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== 'training') return;
+    async function fetchVideos(): Promise<void> {
+      const { data } = await supabase
+        .from('training_videos')
+        .select('*')
+        .eq('status', 'published')
+        .order('sort_order', { ascending: true });
+      if (data) setTrainingVideos(data as TrainingVideo[]);
+    }
+    fetchVideos();
+  }, [activeTab]);
 
   return (
     <section className="pt-32 pb-20">
@@ -143,35 +132,65 @@ export default function ResourcesPage(): React.JSX.Element {
         {activeTab === 'training' && (
           <motion.div
             className="max-w-4xl mx-auto space-y-8"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
           >
-            {trainingVideos.map((week) => (
-              <motion.div key={week.week} variants={itemVariants}>
-                <h3 className="text-lg font-semibold mb-3 text-[var(--color-gold)]">Week {week.week}</h3>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {week.videos.map((video) => (
-                    <a
-                      key={video.title}
-                      href={video.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="glass rounded-xl p-5 flex items-center gap-4 group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors">
-                        <Video className="w-5 h-5 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium">{video.title}</h4>
-                        <p className="text-[var(--color-mist)] text-xs">YouTube</p>
-                      </div>
-                      <ExternalLink className="w-4 h-4 text-[var(--color-wave)] group-hover:text-[var(--color-gold)] transition-colors" />
-                    </a>
-                  ))}
+            {/* Calendar */}
+            <TrainingCalendar />
+
+            {/* Consolidated Training Videos */}
+            <div className="glass rounded-2xl overflow-hidden">
+              <button
+                onClick={() => setVideosExpanded(!videosExpanded)}
+                className="w-full px-5 py-5 flex items-center justify-between hover:bg-[var(--color-ocean)]/10 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center">
+                    <Video className="w-5 h-5 text-[var(--color-surf)]" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-semibold text-lg">OSA Training Videos</h3>
+                    <p className="text-[var(--color-mist)] text-sm">
+                      {trainingVideos.length} step-by-step video tutorials
+                    </p>
+                  </div>
                 </div>
-              </motion.div>
-            ))}
+                {videosExpanded
+                  ? <ChevronUp className="w-5 h-5 text-[var(--color-wave)]" />
+                  : <ChevronDown className="w-5 h-5 text-[var(--color-wave)]" />}
+              </button>
+
+              <AnimatePresence>
+                {videosExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-5 pb-5 grid sm:grid-cols-2 gap-3">
+                      {trainingVideos.map((video) => (
+                        <a
+                          key={video.id}
+                          href={video.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="glass rounded-xl p-4 flex items-center gap-3 group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors shrink-0">
+                            <Video className="w-4 h-4 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
+                          </div>
+                          <span className="font-medium text-sm flex-1">{video.title}</span>
+                          <ExternalLink className="w-3.5 h-3.5 text-[var(--color-wave)] group-hover:text-[var(--color-gold)] transition-colors shrink-0" />
+                        </a>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </motion.div>
         )}
 
