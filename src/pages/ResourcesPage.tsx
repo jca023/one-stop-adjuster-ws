@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Video, FileText, HelpCircle, ExternalLink, Download, ArrowRight, Clock, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import type { Post, TrainingVideo, DocumentCategory, Document } from '../lib/supabase';
+import type { Post, TrainingVideo, DocumentCategory, Document, VideoCategory } from '../lib/supabase';
 import TrainingCalendar from '../components/TrainingCalendar';
 
 const tabs = [
@@ -18,7 +18,8 @@ export default function ResourcesPage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState('docs');
   const [recentPosts, setRecentPosts] = useState<Post[]>([]);
   const [trainingVideos, setTrainingVideos] = useState<TrainingVideo[]>([]);
-  const [videosExpanded, setVideosExpanded] = useState(false);
+  const [videoCategories, setVideoCategories] = useState<VideoCategory[]>([]);
+  const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const [categories, setCategories] = useState<DocumentCategory[]>([]);
   const [docs, setDocs] = useState<Document[]>([]);
 
@@ -58,15 +59,23 @@ export default function ResourcesPage(): React.JSX.Element {
 
   useEffect(() => {
     if (activeTab !== 'training') return;
-    async function fetchVideos(): Promise<void> {
-      const { data } = await supabase
-        .from('training_videos')
-        .select('*')
-        .eq('status', 'published')
-        .order('sort_order', { ascending: true });
-      if (data) setTrainingVideos(data as TrainingVideo[]);
+    async function fetchTrainingData(): Promise<void> {
+      const [catRes, vidRes] = await Promise.all([
+        supabase
+          .from('video_categories')
+          .select('*')
+          .eq('status', 'published')
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('training_videos')
+          .select('*')
+          .eq('status', 'published')
+          .order('sort_order', { ascending: true }),
+      ]);
+      if (catRes.data) setVideoCategories(catRes.data as VideoCategory[]);
+      if (vidRes.data) setTrainingVideos(vidRes.data as TrainingVideo[]);
     }
-    fetchVideos();
+    fetchTrainingData();
   }, [activeTab]);
 
   return (
@@ -163,58 +172,70 @@ export default function ResourcesPage(): React.JSX.Element {
             {/* Calendar */}
             <TrainingCalendar />
 
-            {/* Consolidated Training Videos */}
-            <div className="glass rounded-2xl overflow-hidden">
-              <button
-                onClick={() => setVideosExpanded(!videosExpanded)}
-                className="w-full px-5 py-5 flex items-center justify-between hover:bg-[var(--color-ocean)]/10 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center">
-                    <Video className="w-5 h-5 text-[var(--color-surf)]" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-semibold text-lg">OSA Training Videos</h3>
-                    <p className="text-[var(--color-mist)] text-sm">
-                      {trainingVideos.length} step-by-step video tutorials
-                    </p>
-                  </div>
-                </div>
-                {videosExpanded
-                  ? <ChevronUp className="w-5 h-5 text-[var(--color-wave)]" />
-                  : <ChevronDown className="w-5 h-5 text-[var(--color-wave)]" />}
-              </button>
-
-              <AnimatePresence>
-                {videosExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
+            {/* Training Videos by Category */}
+            {videoCategories.map((cat) => {
+              const catVideos = trainingVideos.filter((v) => v.category_id === cat.id);
+              if (catVideos.length === 0) return null;
+              return (
+                <div key={cat.id} className="glass rounded-2xl overflow-hidden">
+                  <button
+                    onClick={() => setExpandedCategoryId(expandedCategoryId === cat.id ? null : cat.id)}
+                    className="w-full px-5 py-5 flex items-center justify-between hover:bg-[var(--color-ocean)]/10 transition-colors"
                   >
-                    <div className="px-5 pb-5 grid sm:grid-cols-2 gap-3">
-                      {trainingVideos.map((video) => (
-                        <a
-                          key={video.id}
-                          href={video.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="glass rounded-xl p-4 flex items-center gap-3 group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors shrink-0">
-                            <Video className="w-4 h-4 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
-                          </div>
-                          <span className="font-medium text-sm flex-1">{video.title}</span>
-                          <ExternalLink className="w-3.5 h-3.5 text-[var(--color-wave)] group-hover:text-[var(--color-gold)] transition-colors shrink-0" />
-                        </a>
-                      ))}
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center">
+                        <Video className="w-5 h-5 text-[var(--color-surf)]" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-semibold text-lg">{cat.name}</h3>
+                        <p className="text-[var(--color-mist)] text-sm">
+                          {catVideos.length} video{catVideos.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    {expandedCategoryId === cat.id
+                      ? <ChevronUp className="w-5 h-5 text-[var(--color-wave)]" />
+                      : <ChevronDown className="w-5 h-5 text-[var(--color-wave)]" />}
+                  </button>
+
+                  <AnimatePresence>
+                    {expandedCategoryId === cat.id && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-5 pb-5 grid sm:grid-cols-2 gap-3">
+                          {catVideos.map((video) => (
+                            <a
+                              key={video.id}
+                              href={video.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="glass rounded-xl p-4 flex items-center gap-3 group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors"
+                            >
+                              <div className="w-8 h-8 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors shrink-0">
+                                <Video className="w-4 h-4 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
+                              </div>
+                              <span className="font-medium text-sm flex-1">{video.title}</span>
+                              <ExternalLink className="w-3.5 h-3.5 text-[var(--color-wave)] group-hover:text-[var(--color-gold)] transition-colors shrink-0" />
+                            </a>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+            {videoCategories.length === 0 && trainingVideos.length === 0 && (
+              <div className="glass rounded-2xl p-8 text-center">
+                <Video className="w-12 h-12 text-[var(--color-wave)] mx-auto mb-4" />
+                <p className="text-[var(--color-mist)]">Training videos coming soon.</p>
+              </div>
+            )}
           </motion.div>
         )}
 
