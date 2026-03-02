@@ -273,6 +273,8 @@ export default function AdminDocumentsPage(): React.JSX.Element {
     if (failed) {
       setFeedback({ type: 'error', message: 'Failed to save new order. Refreshing...' });
       fetchCategories();
+    } else {
+      setFeedback({ type: 'success', message: 'Order saved.' });
     }
   }
 
@@ -310,6 +312,8 @@ export default function AdminDocumentsPage(): React.JSX.Element {
     if (failed) {
       setFeedback({ type: 'error', message: 'Failed to save new order. Refreshing...' });
       fetchDocuments();
+    } else {
+      setFeedback({ type: 'success', message: 'Order saved.' });
     }
   }
 
@@ -616,7 +620,7 @@ export default function AdminDocumentsPage(): React.JSX.Element {
         {/* Categories list */}
         {subTab === 'categories' && !categoriesLoading && !isEditing && (
           <>
-            <p className="text-xs text-[var(--color-wave)] mb-2">Drag items to reorder</p>
+            {categories.length > 0 && <p className="text-xs text-[var(--color-wave)] mb-2">Drag items to reorder</p>}
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleCategoryReorder}>
               <SortableContext items={categories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
                 <div className="glass rounded-xl overflow-hidden divide-y divide-[var(--color-ocean)]/20">
@@ -660,7 +664,7 @@ export default function AdminDocumentsPage(): React.JSX.Element {
               </select>
             </div>
 
-            <p className="text-xs text-[var(--color-wave)] mb-2">Drag items to reorder</p>
+            {filteredDocuments.length > 0 && <p className="text-xs text-[var(--color-wave)] mb-2">Drag items to reorder &middot; Check items to bulk move</p>}
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDocumentReorder}>
               <SortableContext items={filteredDocuments.map((d) => d.id)} strategy={verticalListSortingStrategy}>
                 <div className="glass rounded-xl overflow-hidden divide-y divide-[var(--color-ocean)]/20">
