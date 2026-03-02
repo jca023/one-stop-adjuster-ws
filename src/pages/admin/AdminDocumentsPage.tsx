@@ -200,7 +200,8 @@ export default function AdminDocumentsPage(): React.JSX.Element {
         if (editingDocument.id && editingDocument.file_url) {
           const oldPath = getStoragePath(editingDocument.file_url);
           if (oldPath) {
-            await supabase.storage.from('documents').remove([oldPath]);
+            const { error: rmErr } = await supabase.storage.from('documents').remove([oldPath]);
+            if (rmErr) console.error('Failed to remove old file from storage:', rmErr);
           }
         }
 
@@ -259,7 +260,8 @@ export default function AdminDocumentsPage(): React.JSX.Element {
     // Delete the file from storage
     const path = getStoragePath(doc.file_url);
     if (path) {
-      await supabase.storage.from('documents').remove([path]);
+      const { error: rmErr } = await supabase.storage.from('documents').remove([path]);
+      if (rmErr) console.error('Failed to remove file from storage:', rmErr);
     }
 
     const { error } = await supabase.from('documents').delete().eq('id', doc.id);
@@ -279,6 +281,7 @@ export default function AdminDocumentsPage(): React.JSX.Element {
 
   function openNewDocument(): void {
     setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     setEditingDocument({
       ...emptyDocument,
       sort_order: documents.length + 1,
@@ -288,6 +291,7 @@ export default function AdminDocumentsPage(): React.JSX.Element {
 
   function openEditDocument(doc: Document): void {
     setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     setEditingDocument(doc);
   }
 
