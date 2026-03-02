@@ -27,3 +27,30 @@ export interface Testimonial {
   status: string;
   created_at: string;
 }
+
+export interface TrainingEvent {
+  id: string;
+  title: string;
+  description: string | null;
+  event_date: string;
+  start_time: string | null;
+  end_time: string | null;
+  event_type: 'webinar' | 'in-person' | 'workshop' | 'deadline';
+  url: string | null;
+  fee: number;
+  venmo_qr_url: string | null;
+  recording_url: string | null;
+  status: 'draft' | 'published' | 'cancelled';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrainingVideo {
+  id: string;
+  title: string;
+  url: string;
+  description: string | null;
+  sort_order: number;
+  status: 'draft' | 'published';
+  created_at: string;
+}

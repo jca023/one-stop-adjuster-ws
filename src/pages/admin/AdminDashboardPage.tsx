@@ -1,21 +1,24 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Star, ArrowRight, ExternalLink } from 'lucide-react';
+import { FileText, Star, ArrowRight, ExternalLink, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
 export default function AdminDashboardPage(): React.JSX.Element {
   const [postCount, setPostCount] = useState<number | null>(null);
   const [testimonialCount, setTestimonialCount] = useState<number | null>(null);
+  const [trainingCount, setTrainingCount] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchCounts(): Promise<void> {
-      const [postsRes, testimonialsRes] = await Promise.all([
+      const [postsRes, testimonialsRes, eventsRes] = await Promise.all([
         supabase.from('posts').select('id', { count: 'exact', head: true }),
         supabase.from('testimonials').select('id', { count: 'exact', head: true }),
+        supabase.from('training_events').select('id', { count: 'exact', head: true }),
       ]);
       setPostCount(postsRes.count ?? 0);
       setTestimonialCount(testimonialsRes.count ?? 0);
+      setTrainingCount(eventsRes.count ?? 0);
     }
     fetchCounts();
   }, []);
@@ -37,11 +40,19 @@ export default function AdminDashboardPage(): React.JSX.Element {
       description: 'Manage customer testimonials and ratings',
       publicPath: '/testimonials',
     },
+    {
+      title: 'Training',
+      count: trainingCount,
+      icon: Calendar,
+      href: '/admin/training',
+      description: 'Manage calendar events and training videos',
+      publicPath: '/resources (Training tab)',
+    },
   ];
 
   return (
     <section className="pt-32 pb-20">
-      <div className="container max-w-3xl">
+      <div className="container max-w-5xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -56,7 +67,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {cards.map((card, i) => (
             <motion.div
               key={card.title}

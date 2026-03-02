@@ -19,6 +19,7 @@ import ImportFormPage from './pages/ImportFormPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminBlogPage from './pages/admin/AdminBlogPage';
 import AdminTestimonialsPage from './pages/admin/AdminTestimonialsPage';
+import AdminTrainingPage from './pages/admin/AdminTrainingPage';
 
 export default function App(): React.JSX.Element {
   return (
@@ -48,6 +49,7 @@ export default function App(): React.JSX.Element {
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/admin/blog" element={<AdminBlogPage />} />
             <Route path="/admin/testimonials" element={<AdminTestimonialsPage />} />
+            <Route path="/admin/training" element={<AdminTrainingPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
