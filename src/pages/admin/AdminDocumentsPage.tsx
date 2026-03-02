@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, X, Save, ArrowLeft, FolderOpen, FileText, Upload } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Save, ArrowLeft, FolderOpen, FileText, Upload, GripVertical } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '../../lib/supabase';
 import type { DocumentCategory, Document } from '../../lib/supabase';
 
@@ -51,6 +55,124 @@ function getStoragePath(fileUrl: string): string | null {
   return match ? match[1] : null;
 }
 
+/* ---------- sortable sub-components ---------- */
+
+interface SortableCategoryItemProps {
+  cat: DocumentCategory;
+  docCount: number;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function SortableCategoryItem({ cat, docCount, onEdit, onDelete }: SortableCategoryItemProps): React.JSX.Element {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: cat.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : 0,
+    position: 'relative' as const,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="p-5 flex items-center justify-between gap-4">
+      <button
+        type="button"
+        className="p-1.5 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors cursor-grab active:cursor-grabbing shrink-0 touch-none"
+        aria-label="Drag to reorder"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="w-4 h-4 text-[var(--color-wave)]" />
+      </button>
+      <div className="flex-1 min-w-0">
+        <h3 className="font-semibold truncate">{cat.name}</h3>
+        <div className="flex items-center gap-3 mt-1 text-xs text-[var(--color-wave)]">
+          <span className="px-2 py-0.5 rounded-full bg-[var(--color-surf)]/20 text-[var(--color-surf)]">
+            {docCount} doc{docCount !== 1 ? 's' : ''}
+          </span>
+          <span className={cat.status === 'published' ? 'text-[var(--color-success)]' : 'text-[var(--color-wave)]'}>
+            {cat.status}
+          </span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <button onClick={onEdit} className="p-2 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors" title="Edit">
+          <Pencil className="w-4 h-4 text-[var(--color-surf)]" />
+        </button>
+        <button onClick={onDelete} className="p-2 rounded-lg hover:bg-red-500/20 transition-colors" title="Delete">
+          <Trash2 className="w-4 h-4 text-red-400" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface SortableDocumentItemProps {
+  doc: Document;
+  categoryName: string;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function SortableDocumentItem({ doc, categoryName, isSelected, onToggleSelect, onEdit, onDelete }: SortableDocumentItemProps): React.JSX.Element {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: doc.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : 0,
+    position: 'relative' as const,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="p-5 flex items-center justify-between gap-4">
+      <label className="shrink-0 flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={onToggleSelect}
+          className="w-4 h-4 rounded border-[var(--color-ocean)]/50 bg-[var(--color-deep)] text-[var(--color-gold)] accent-[var(--color-gold)] cursor-pointer"
+        />
+      </label>
+      <button
+        type="button"
+        className="p-1.5 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors cursor-grab active:cursor-grabbing shrink-0 touch-none"
+        aria-label="Drag to reorder"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="w-4 h-4 text-[var(--color-wave)]" />
+      </button>
+      <div className="flex-1 min-w-0">
+        <h3 className="font-semibold truncate">{doc.title}</h3>
+        <div className="flex items-center gap-3 mt-1 text-xs text-[var(--color-wave)] flex-wrap">
+          <span className="px-2 py-0.5 rounded-full bg-[var(--color-gold)]/20 text-[var(--color-gold)] font-semibold uppercase tracking-wide">
+            {doc.file_type}
+          </span>
+          <span>{formatFileSize(doc.file_size)}</span>
+          <span className="text-[var(--color-surf)]">{categoryName}</span>
+          <span className={doc.status === 'published' ? 'text-[var(--color-success)]' : 'text-[var(--color-wave)]'}>
+            {doc.status}
+          </span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <button onClick={onEdit} className="p-2 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors" title="Edit">
+          <Pencil className="w-4 h-4 text-[var(--color-surf)]" />
+        </button>
+        <button onClick={onDelete} className="p-2 rounded-lg hover:bg-red-500/20 transition-colors" title="Delete">
+          <Trash2 className="w-4 h-4 text-red-400" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ---------- component ---------- */
 
 export default function AdminDocumentsPage(): React.JSX.Element {
@@ -74,9 +196,18 @@ export default function AdminDocumentsPage(): React.JSX.Element {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Checkbox / bulk move state
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
+
   // Shared state
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // dnd-kit sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   useEffect(() => {
     fetchCategories();
@@ -117,6 +248,109 @@ export default function AdminDocumentsPage(): React.JSX.Element {
       setDocCounts(counts);
     }
     setDocumentsLoading(false);
+  }
+
+  /* --- Drag-to-reorder handlers --- */
+
+  async function handleCategoryReorder(event: DragEndEvent): Promise<void> {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = categories.findIndex((c) => c.id === active.id);
+    const newIndex = categories.findIndex((c) => c.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(categories, oldIndex, newIndex).map((cat, i) => ({ ...cat, sort_order: i + 1 }));
+    setCategories(reordered);
+
+    // Batch-update sort_order for each category
+    const updates = reordered.map((cat, i) => (
+      supabase.from('document_categories').update({ sort_order: i + 1 }).eq('id', cat.id)
+    ));
+
+    const results = await Promise.all(updates);
+    const failed = results.some((r) => r.error);
+    if (failed) {
+      setFeedback({ type: 'error', message: 'Failed to save new order. Refreshing...' });
+      fetchCategories();
+    } else {
+      setFeedback({ type: 'success', message: 'Order saved.' });
+    }
+  }
+
+  async function handleDocumentReorder(event: DragEndEvent): Promise<void> {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    // Work within the filtered list
+    const workingList = filterCategoryId === 'all'
+      ? documents
+      : documents.filter((d) => d.category_id === filterCategoryId);
+
+    const oldIndex = workingList.findIndex((d) => d.id === active.id);
+    const newIndex = workingList.findIndex((d) => d.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reorderedFiltered = arrayMove(workingList, oldIndex, newIndex).map((doc, i) => ({ ...doc, sort_order: i + 1 }));
+
+    if (filterCategoryId === 'all') {
+      setDocuments(reorderedFiltered);
+    } else {
+      const otherDocs = documents.filter((d) => d.category_id !== filterCategoryId);
+      setDocuments([...otherDocs, ...reorderedFiltered]);
+    }
+
+    // Batch-update sort_order for reordered items
+    const updates = reorderedFiltered.map((doc, i) => (
+      supabase.from('documents').update({ sort_order: i + 1 }).eq('id', doc.id)
+    ));
+
+    const results = await Promise.all(updates);
+    const failed = results.some((r) => r.error);
+    if (failed) {
+      setFeedback({ type: 'error', message: 'Failed to save new order. Refreshing...' });
+      fetchDocuments();
+    } else {
+      setFeedback({ type: 'success', message: 'Order saved.' });
+    }
+  }
+
+  /* --- Checkbox / bulk move --- */
+
+  function toggleDocSelection(id: string): void {
+    setSelectedDocIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function deselectAllDocs(): void {
+    setSelectedDocIds(new Set());
+  }
+
+  async function handleBulkMoveDocuments(targetCategoryId: string): Promise<void> {
+    if (selectedDocIds.size === 0) return;
+
+    setSaving(true);
+    const ids = Array.from(selectedDocIds);
+    const { error } = await supabase
+      .from('documents')
+      .update({ category_id: targetCategoryId, updated_at: new Date().toISOString() })
+      .in('id', ids);
+
+    if (error) {
+      setFeedback({ type: 'error', message: 'Failed to move documents.' });
+    } else {
+      setFeedback({ type: 'success', message: `Moved ${ids.length} document${ids.length > 1 ? 's' : ''}.` });
+      deselectAllDocs();
+      fetchDocuments();
+    }
+    setSaving(false);
   }
 
   /* --- Category CRUD --- */
@@ -284,7 +518,7 @@ export default function AdminDocumentsPage(): React.JSX.Element {
     if (fileInputRef.current) fileInputRef.current.value = '';
     setEditingDocument({
       ...emptyDocument,
-      sort_order: documents.length + 1,
+      sort_order: Math.max(...documents.map((d) => d.sort_order), 0) + 1,
       category_id: categories.length > 0 ? categories[0].id : '',
     });
   }
@@ -314,7 +548,10 @@ export default function AdminDocumentsPage(): React.JSX.Element {
             <h1 className="text-2xl md:text-3xl font-bold">Documents</h1>
           </div>
           <button
-            onClick={() => subTab === 'categories' ? setEditingCategory({ ...emptyCategory, sort_order: categories.length + 1 }) : openNewDocument()}
+            onClick={() => subTab === 'categories'
+              ? setEditingCategory({ ...emptyCategory, sort_order: Math.max(...categories.map((c) => c.sort_order), 0) + 1 })
+              : openNewDocument()
+            }
             className="btn-primary flex items-center gap-2 !px-4 !py-2 text-sm"
           >
             <Plus className="w-4 h-4" />
@@ -380,39 +617,29 @@ export default function AdminDocumentsPage(): React.JSX.Element {
 
         {/* Categories list */}
         {subTab === 'categories' && !categoriesLoading && !isEditing && (
-          <div className="glass rounded-xl overflow-hidden divide-y divide-[var(--color-ocean)]/20">
-            {categories.map((cat) => (
-              <div key={cat.id} className="p-5 flex items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold truncate">{cat.name}</h3>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-[var(--color-wave)]">
-                    <span className="px-2 py-0.5 rounded-full bg-[var(--color-surf)]/20 text-[var(--color-surf)]">
-                      {docCounts[cat.id] || 0} doc{(docCounts[cat.id] || 0) !== 1 ? 's' : ''}
-                    </span>
-                    <span className="font-mono text-[var(--color-wave)] bg-[var(--color-ocean)]/20 px-2 py-0.5 rounded">
-                      #{cat.sort_order}
-                    </span>
-                    <span className={cat.status === 'published' ? 'text-[var(--color-success)]' : 'text-[var(--color-wave)]'}>
-                      {cat.status}
-                    </span>
-                  </div>
+          <>
+            {categories.length > 0 && <p className="text-xs text-[var(--color-wave)] mb-2">Drag items to reorder</p>}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleCategoryReorder}>
+              <SortableContext items={categories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+                <div className="glass rounded-xl overflow-hidden divide-y divide-[var(--color-ocean)]/20">
+                  {categories.map((cat) => (
+                    <SortableCategoryItem
+                      key={cat.id}
+                      cat={cat}
+                      docCount={docCounts[cat.id] || 0}
+                      onEdit={() => setEditingCategory(cat)}
+                      onDelete={() => handleDeleteCategory(cat)}
+                    />
+                  ))}
+                  {categories.length === 0 && (
+                    <div className="p-12 text-center">
+                      <p className="text-[var(--color-mist)]">No categories yet. Click "New Category" to create one.</p>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button onClick={() => setEditingCategory(cat)} className="p-2 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors" title="Edit">
-                    <Pencil className="w-4 h-4 text-[var(--color-surf)]" />
-                  </button>
-                  <button onClick={() => handleDeleteCategory(cat)} className="p-2 rounded-lg hover:bg-red-500/20 transition-colors" title="Delete">
-                    <Trash2 className="w-4 h-4 text-red-400" />
-                  </button>
-                </div>
-              </div>
-            ))}
-            {categories.length === 0 && (
-              <div className="p-12 text-center">
-                <p className="text-[var(--color-mist)]">No categories yet. Click "New Category" to create one.</p>
-              </div>
-            )}
-          </div>
+              </SortableContext>
+            </DndContext>
+          </>
         )}
 
         {/* Documents list */}
@@ -422,7 +649,10 @@ export default function AdminDocumentsPage(): React.JSX.Element {
             <div className="mb-4">
               <select
                 value={filterCategoryId}
-                onChange={(e) => setFilterCategoryId(e.target.value)}
+                onChange={(e) => {
+                  setFilterCategoryId(e.target.value);
+                  setSelectedDocIds(new Set());
+                }}
                 className={`${inputClass} sm:w-64`}
               >
                 <option value="all">All Categories</option>
@@ -432,42 +662,61 @@ export default function AdminDocumentsPage(): React.JSX.Element {
               </select>
             </div>
 
-            <div className="glass rounded-xl overflow-hidden divide-y divide-[var(--color-ocean)]/20">
-              {filteredDocuments.map((doc) => (
-                <div key={doc.id} className="p-5 flex items-center justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold truncate">{doc.title}</h3>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-[var(--color-wave)] flex-wrap">
-                      <span className="px-2 py-0.5 rounded-full bg-[var(--color-gold)]/20 text-[var(--color-gold)] font-semibold uppercase tracking-wide">
-                        {doc.file_type}
-                      </span>
-                      <span>{formatFileSize(doc.file_size)}</span>
-                      <span className="text-[var(--color-surf)]">{getCategoryName(doc.category_id)}</span>
-                      <span className={doc.status === 'published' ? 'text-[var(--color-success)]' : 'text-[var(--color-wave)]'}>
-                        {doc.status}
-                      </span>
+            {filteredDocuments.length > 0 && <p className="text-xs text-[var(--color-wave)] mb-2">Drag items to reorder &middot; Check items to bulk move</p>}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDocumentReorder}>
+              <SortableContext items={filteredDocuments.map((d) => d.id)} strategy={verticalListSortingStrategy}>
+                <div className="glass rounded-xl overflow-hidden divide-y divide-[var(--color-ocean)]/20">
+                  {filteredDocuments.map((doc) => (
+                    <SortableDocumentItem
+                      key={doc.id}
+                      doc={doc}
+                      categoryName={getCategoryName(doc.category_id)}
+                      isSelected={selectedDocIds.has(doc.id)}
+                      onToggleSelect={() => toggleDocSelection(doc.id)}
+                      onEdit={() => openEditDocument(doc)}
+                      onDelete={() => handleDeleteDocument(doc)}
+                    />
+                  ))}
+                  {filteredDocuments.length === 0 && (
+                    <div className="p-12 text-center">
+                      <p className="text-[var(--color-mist)]">
+                        {filterCategoryId === 'all'
+                          ? 'No documents yet. Click "Upload Document" to add one.'
+                          : 'No documents in this category.'}
+                      </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button onClick={() => openEditDocument(doc)} className="p-2 rounded-lg hover:bg-[var(--color-ocean)]/30 transition-colors" title="Edit">
-                      <Pencil className="w-4 h-4 text-[var(--color-surf)]" />
-                    </button>
-                    <button onClick={() => handleDeleteDocument(doc)} className="p-2 rounded-lg hover:bg-red-500/20 transition-colors" title="Delete">
-                      <Trash2 className="w-4 h-4 text-red-400" />
-                    </button>
-                  </div>
+                  )}
                 </div>
-              ))}
-              {filteredDocuments.length === 0 && (
-                <div className="p-12 text-center">
-                  <p className="text-[var(--color-mist)]">
-                    {filterCategoryId === 'all'
-                      ? 'No documents yet. Click "Upload Document" to add one.'
-                      : 'No documents in this category.'}
-                  </p>
-                </div>
+              </SortableContext>
+            </DndContext>
+
+            {/* Floating bulk move action bar */}
+            <AnimatePresence>
+              {selectedDocIds.size > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 glass rounded-xl px-5 py-3 flex items-center gap-4 shadow-lg border border-[var(--color-gold)]/30"
+                >
+                  <span className="text-sm font-medium">{selectedDocIds.size} selected</span>
+                  <select
+                    onChange={(e) => { if (e.target.value) handleBulkMoveDocuments(e.target.value); e.target.value = ''; }}
+                    className="px-3 py-1.5 rounded-lg bg-[var(--color-gold)] text-[var(--color-abyss)] text-sm font-medium cursor-pointer"
+                    defaultValue=""
+                    disabled={saving}
+                  >
+                    <option value="" disabled>Move to...</option>
+                    {categories.filter((c) => c.status === 'published').map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                  <button onClick={deselectAllDocs} className="text-sm text-[var(--color-wave)] hover:text-[var(--color-pearl)] transition-colors">
+                    Deselect all
+                  </button>
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
           </>
         )}
 
@@ -506,28 +755,16 @@ export default function AdminDocumentsPage(): React.JSX.Element {
                     />
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--color-mist)] mb-1">Sort Order</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={editingCategory.sort_order || 0}
-                        onChange={(e) => setEditingCategory({ ...editingCategory, sort_order: parseInt(e.target.value) || 0 })}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--color-mist)] mb-1">Status</label>
-                      <select
-                        value={editingCategory.status || 'published'}
-                        onChange={(e) => setEditingCategory({ ...editingCategory, status: e.target.value as DocumentCategory['status'] })}
-                        className={inputClass}
-                      >
-                        <option value="published">Published</option>
-                        <option value="draft">Draft</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-mist)] mb-1">Status</label>
+                    <select
+                      value={editingCategory.status || 'published'}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, status: e.target.value as DocumentCategory['status'] })}
+                      className={inputClass}
+                    >
+                      <option value="published">Published</option>
+                      <option value="draft">Draft</option>
+                    </select>
                   </div>
 
                   <div className="flex items-center gap-3 pt-4">
@@ -644,28 +881,16 @@ export default function AdminDocumentsPage(): React.JSX.Element {
                     </button>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--color-mist)] mb-1">Sort Order</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={editingDocument.sort_order || 0}
-                        onChange={(e) => setEditingDocument({ ...editingDocument, sort_order: parseInt(e.target.value) || 0 })}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--color-mist)] mb-1">Status</label>
-                      <select
-                        value={editingDocument.status || 'published'}
-                        onChange={(e) => setEditingDocument({ ...editingDocument, status: e.target.value as Document['status'] })}
-                        className={inputClass}
-                      >
-                        <option value="published">Published</option>
-                        <option value="draft">Draft</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-mist)] mb-1">Status</label>
+                    <select
+                      value={editingDocument.status || 'published'}
+                      onChange={(e) => setEditingDocument({ ...editingDocument, status: e.target.value as Document['status'] })}
+                      className={inputClass}
+                    >
+                      <option value="published">Published</option>
+                      <option value="draft">Draft</option>
+                    </select>
                   </div>
 
                   <div className="flex items-center gap-3 pt-4">
