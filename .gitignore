@@ -30,6 +30,9 @@ dist-ssr
 # Claude Code
 .claude/
 
+# Playwright MCP
+.playwright-mcp/
+
 # Supabase temp files
 supabase/.temp/
 
