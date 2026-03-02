@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Star, ArrowRight, ExternalLink, Calendar } from 'lucide-react';
+import { FileText, Star, ArrowRight, ExternalLink, Calendar, FolderOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
@@ -8,17 +8,20 @@ export default function AdminDashboardPage(): React.JSX.Element {
   const [postCount, setPostCount] = useState<number | null>(null);
   const [testimonialCount, setTestimonialCount] = useState<number | null>(null);
   const [trainingCount, setTrainingCount] = useState<number | null>(null);
+  const [documentsCount, setDocumentsCount] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchCounts(): Promise<void> {
-      const [postsRes, testimonialsRes, eventsRes] = await Promise.all([
+      const [postsRes, testimonialsRes, eventsRes, documentsRes] = await Promise.all([
         supabase.from('posts').select('id', { count: 'exact', head: true }),
         supabase.from('testimonials').select('id', { count: 'exact', head: true }),
         supabase.from('training_events').select('id', { count: 'exact', head: true }),
+        supabase.from('documents').select('id', { count: 'exact', head: true }),
       ]);
       setPostCount(postsRes.count ?? 0);
       setTestimonialCount(testimonialsRes.count ?? 0);
       setTrainingCount(eventsRes.count ?? 0);
+      setDocumentsCount(documentsRes.count ?? 0);
     }
     fetchCounts();
   }, []);
@@ -47,6 +50,14 @@ export default function AdminDashboardPage(): React.JSX.Element {
       href: '/admin/training',
       description: 'Manage calendar events and training videos',
       publicPath: '/resources (Training tab)',
+    },
+    {
+      title: 'Documents',
+      count: documentsCount,
+      icon: FolderOpen,
+      href: '/admin/documents',
+      description: 'Upload and organize downloadable documents',
+      publicPath: '/resources (Documentation tab)',
     },
   ];
 
@@ -77,7 +88,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
             >
               <Link
                 to={card.href}
-                className="glass rounded-2xl p-6 flex flex-col group hover:border-[var(--color-gold)]/30 border border-transparent transition-all block"
+                className="glass rounded-2xl p-6 flex flex-col h-full group hover:border-[var(--color-gold)]/30 border border-transparent transition-all block"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors">
