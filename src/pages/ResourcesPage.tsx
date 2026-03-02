@@ -9,7 +9,7 @@ import TrainingCalendar from '../components/TrainingCalendar';
 const tabs = [
   { id: 'docs', label: 'Documentation', icon: BookOpen },
   { id: 'training', label: 'Training', icon: Video },
-  { id: 'library', label: 'Library', icon: FileText },
+  { id: 'blog', label: 'Blog', icon: FileText },
   { id: 'support', label: 'Support', icon: HelpCircle },
 ];
 
@@ -239,8 +239,8 @@ export default function ResourcesPage(): React.JSX.Element {
           </motion.div>
         )}
 
-        {/* Library Tab */}
-        {activeTab === 'library' && (
+        {/* Blog Tab */}
+        {activeTab === 'blog' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -248,9 +248,9 @@ export default function ResourcesPage(): React.JSX.Element {
             className="max-w-3xl mx-auto"
           >
             <div className="text-center mb-8">
-              <h3 className="text-xl font-semibold mb-2">Blog & Library</h3>
+              <h3 className="text-xl font-semibold mb-2">Latest from OSA</h3>
               <p className="text-[var(--color-mist)]">
-                Latest articles from the OSA team
+                Recent articles from the One Stop Adjuster team
               </p>
             </div>
 
