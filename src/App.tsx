@@ -21,6 +21,7 @@ import AdminBlogPage from './pages/admin/AdminBlogPage';
 import AdminTestimonialsPage from './pages/admin/AdminTestimonialsPage';
 import AdminTrainingPage from './pages/admin/AdminTrainingPage';
 import AdminDocumentsPage from './pages/admin/AdminDocumentsPage';
+import AdminSubmissionsPage from './pages/admin/AdminSubmissionsPage';
 
 export default function App(): React.JSX.Element {
   return (
@@ -52,6 +53,7 @@ export default function App(): React.JSX.Element {
             <Route path="/admin/testimonials" element={<AdminTestimonialsPage />} />
             <Route path="/admin/training" element={<AdminTrainingPage />} />
             <Route path="/admin/documents" element={<AdminDocumentsPage />} />
+            <Route path="/admin/submissions" element={<AdminSubmissionsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

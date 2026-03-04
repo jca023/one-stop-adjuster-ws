@@ -1,12 +1,15 @@
 import { motion } from 'framer-motion';
 import { useRef, useState } from 'react';
 import { useInView } from 'framer-motion';
-import { Mail, Phone, MapPin, Send, CheckCircle, ArrowRight } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function Contact() {
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: '-100px' });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,11 +18,33 @@ export default function Contact() {
     message: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Demo: just show success state
+    setIsSubmitting(true);
+    setError(null);
+
+    const { error: fnError } = await supabase.functions.invoke('submit-contact', {
+      body: {
+        name: formData.name,
+        email: formData.email,
+        company: formData.company || undefined,
+        submission_type: 'demo',
+        message: formData.message
+          ? `Role: ${formData.role || 'Not specified'}\n\n${formData.message}`
+          : `Role: ${formData.role || 'Not specified'}`,
+      },
+    });
+
+    setIsSubmitting(false);
+
+    if (fnError) {
+      setError('Something went wrong. Please try again or email us directly.');
+      return;
+    }
+
     setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 3000);
+    setFormData({ name: '', email: '', company: '', role: '', message: '' });
+    setTimeout(() => setIsSubmitted(false), 5000);
   };
 
   const handleChange = (
@@ -73,7 +98,7 @@ export default function Contact() {
               </a>
 
               <a
-                href="mailto:hello@one-stop-adjuster.com"
+                href="mailto:info@one-stop-adjuster.com"
                 className="flex items-center gap-4 group"
               >
                 <div className="w-12 h-12 rounded-xl bg-[var(--color-surf)]/10 flex items-center justify-center group-hover:bg-[var(--color-surf)]/20 transition-colors">
@@ -81,7 +106,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <div className="text-sm text-[var(--color-mist)]">Email us</div>
-                  <div className="font-medium">hello@one-stop-adjuster.com</div>
+                  <div className="font-medium">info@one-stop-adjuster.com</div>
                 </div>
               </a>
 
@@ -244,12 +269,21 @@ export default function Contact() {
                   />
                 </div>
 
+                {error && (
+                  <p className="text-sm text-red-400 text-center">{error}</p>
+                )}
+
                 <button
                   type="submit"
-                  className="btn-primary w-full flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <Send className="w-4 h-4" />
-                  Send Message
+                  {isSubmitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                 </button>
 
                 <p className="text-xs text-[var(--color-mist)] text-center">
