@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Star, ArrowRight, ExternalLink, Calendar, FolderOpen } from 'lucide-react';
+import { FileText, Star, ArrowRight, ExternalLink, Calendar, FolderOpen, Inbox } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
@@ -9,19 +9,22 @@ export default function AdminDashboardPage(): React.JSX.Element {
   const [testimonialCount, setTestimonialCount] = useState<number | null>(null);
   const [trainingCount, setTrainingCount] = useState<number | null>(null);
   const [documentsCount, setDocumentsCount] = useState<number | null>(null);
+  const [submissionsCount, setSubmissionsCount] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchCounts(): Promise<void> {
-      const [postsRes, testimonialsRes, eventsRes, documentsRes] = await Promise.all([
+      const [postsRes, testimonialsRes, eventsRes, documentsRes, submissionsRes] = await Promise.all([
         supabase.from('posts').select('id', { count: 'exact', head: true }),
         supabase.from('testimonials').select('id', { count: 'exact', head: true }),
         supabase.from('training_events').select('id', { count: 'exact', head: true }),
         supabase.from('documents').select('id', { count: 'exact', head: true }),
+        supabase.from('contact_submissions').select('id', { count: 'exact', head: true }).eq('status', 'new'),
       ]);
       setPostCount(postsRes.count ?? 0);
       setTestimonialCount(testimonialsRes.count ?? 0);
       setTrainingCount(eventsRes.count ?? 0);
       setDocumentsCount(documentsRes.count ?? 0);
+      setSubmissionsCount(submissionsRes.count ?? 0);
     }
     fetchCounts();
   }, []);
@@ -58,6 +61,14 @@ export default function AdminDashboardPage(): React.JSX.Element {
       href: '/admin/documents',
       description: 'Upload and organize downloadable documents',
       publicPath: '/resources (Documentation tab)',
+    },
+    {
+      title: 'Submissions',
+      count: submissionsCount,
+      icon: Inbox,
+      href: '/admin/submissions',
+      description: 'View contact form and demo request submissions',
+      publicPath: '/contact',
     },
   ];
 
