@@ -38,6 +38,7 @@ const FOUNDATION_TYPES = [
 ];
 
 const CONSTRUCTION_TYPES = ['Framed', 'Masonry', 'Other'];
+const YES_NO_NA = ['N/A', 'Yes', 'No'];
 
 const FLOOD_ZONES = [
   'NA','X','B','C','D','A','AE',
@@ -82,8 +83,8 @@ const INITIAL: FormData = {
   primary_secondary: '', tenant_indicator: '', number_of_floors: '',
   pri_foundation_type: 'Slab-on-grade (non-elevated)', pri_construction_type: 'Framed',
   number_of_flood_openings: '', area_of_permanent_flood: '', openings: '', engineered_openings: '',
-  does_building_contain_me: '', me_located_above_first_floor: '',
-  building_contain_washer_dryer_freezer: '', washer_dryer_freezer_above_first_floor: '',
+  does_building_contain_me: 'N/A', me_located_above_first_floor: 'N/A',
+  building_contain_washer_dryer_freezer: 'N/A', washer_dryer_freezer_above_first_floor: 'N/A',
   enclosure_size: '', first_floor_height: '', first_floor_height_method: '',
   firmStatus: '', floodZone: 'NA',
   dateOfConstruction: '', substantial_improvement_date: '', firmDate: '',
@@ -154,7 +155,16 @@ export default function ImportFormPage(): React.JSX.Element {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const set = useCallback((field: string, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm(prev => {
+      const next = { ...prev, [field]: value };
+      // Auto-fill policy end date = start date + 1 year
+      if (field === 'policyStartDate' && value) {
+        const d = new Date(value);
+        d.setFullYear(d.getFullYear() + 1);
+        next.policyEndDate = d.toISOString().split('T')[0];
+      }
+      return next;
+    });
   }, []);
 
   const isNonResidential = form.pri_building_occupancy.toLowerCase().includes('non-residential');
@@ -565,10 +575,10 @@ export default function ImportFormPage(): React.JSX.Element {
               <TextField label="Area of Permanent Flood" field="area_of_permanent_flood" value={form.area_of_permanent_flood} onChange={set} />
               <TextField label="Openings (sq. in)" field="openings" value={form.openings} onChange={set} />
               <TextField label="Engineered Openings" field="engineered_openings" value={form.engineered_openings} onChange={set} />
-              <TextField label="Does Building Contain M&E" field="does_building_contain_me" value={form.does_building_contain_me} onChange={set} />
-              <TextField label="M&E Located Above First Floor" field="me_located_above_first_floor" value={form.me_located_above_first_floor} onChange={set} />
-              <TextField label="Building Contains Washer/Dryer/Freezer" field="building_contain_washer_dryer_freezer" value={form.building_contain_washer_dryer_freezer} onChange={set} />
-              <TextField label="Washer/Dryer/Freezer Above First Floor" field="washer_dryer_freezer_above_first_floor" value={form.washer_dryer_freezer_above_first_floor} onChange={set} />
+              <SelectField label="Does Building Contain M&E" field="does_building_contain_me" options={YES_NO_NA} value={form.does_building_contain_me} onChange={set} />
+              <SelectField label="M&E Located Above First Floor" field="me_located_above_first_floor" options={YES_NO_NA} value={form.me_located_above_first_floor} onChange={set} />
+              <SelectField label="Building Contains Washer/Dryer/Freezer" field="building_contain_washer_dryer_freezer" options={YES_NO_NA} value={form.building_contain_washer_dryer_freezer} onChange={set} />
+              <SelectField label="Washer/Dryer/Freezer Above First Floor" field="washer_dryer_freezer_above_first_floor" options={YES_NO_NA} value={form.washer_dryer_freezer_above_first_floor} onChange={set} />
               <TextField label="Enclosure Size" field="enclosure_size" value={form.enclosure_size} onChange={set} />
               <TextField label="First Floor Height" field="first_floor_height" type="number" value={form.first_floor_height} onChange={set} />
               <TextField label="First Floor Height Method" field="first_floor_height_method" value={form.first_floor_height_method} onChange={set} />
