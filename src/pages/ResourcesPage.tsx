@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Video, FileText, HelpCircle, ExternalLink, Download, ArrowRight, Clock, User, ChevronDown, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import type { Post, TrainingVideo, DocumentCategory, Document, VideoCategory } from '../lib/supabase';
+import type { Post, TrainingVideo, DocumentCategory, Document } from '../lib/supabase';
 import TrainingCalendar from '../components/TrainingCalendar';
 
 const tabs = [
@@ -18,9 +18,7 @@ export default function ResourcesPage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState('docs');
   const [recentPosts, setRecentPosts] = useState<Post[]>([]);
   const [trainingVideos, setTrainingVideos] = useState<TrainingVideo[]>([]);
-  const [videoCategories, setVideoCategories] = useState<VideoCategory[]>([]);
   const [videosExpanded, setVideosExpanded] = useState(false);
-  const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const [categories, setCategories] = useState<DocumentCategory[]>([]);
   const [docs, setDocs] = useState<Document[]>([]);
 
@@ -61,20 +59,12 @@ export default function ResourcesPage(): React.JSX.Element {
   useEffect(() => {
     if (activeTab !== 'training') return;
     async function fetchTrainingData(): Promise<void> {
-      const [catRes, vidRes] = await Promise.all([
-        supabase
-          .from('video_categories')
-          .select('*')
-          .eq('status', 'published')
-          .order('sort_order', { ascending: true }),
-        supabase
-          .from('training_videos')
-          .select('*')
-          .eq('status', 'published')
-          .order('sort_order', { ascending: true }),
-      ]);
-      if (catRes.data) setVideoCategories(catRes.data as VideoCategory[]);
-      if (vidRes.data) setTrainingVideos(vidRes.data as TrainingVideo[]);
+      const { data } = await supabase
+        .from('training_videos')
+        .select('*')
+        .eq('status', 'published')
+        .order('sort_order', { ascending: true });
+      if (data) setTrainingVideos(data as TrainingVideo[]);
     }
     fetchTrainingData();
   }, [activeTab]);
@@ -210,65 +200,28 @@ export default function ResourcesPage(): React.JSX.Element {
                     transition={{ duration: 0.35, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-6 space-y-3">
-                      {videoCategories.map((cat) => {
-                        const catVideos = trainingVideos.filter((v) => v.category_id === cat.id);
-                        if (catVideos.length === 0) return null;
-                        const isExpanded = expandedCategoryId === cat.id;
-                        return (
-                          <div key={cat.id} className="rounded-xl bg-[var(--color-deep)]/60 border border-[var(--color-ocean)]/20 overflow-hidden">
-                            <button
-                              onClick={() => setExpandedCategoryId(isExpanded ? null : cat.id)}
-                              className="w-full px-4 py-3.5 flex items-center justify-between hover:bg-[var(--color-ocean)]/10 transition-colors"
-                            >
-                              <div className="flex items-center gap-3">
-                                <Video className="w-4 h-4 text-[var(--color-surf)]" />
-                                <span className="font-medium">{cat.name}</span>
-                                <span className="text-xs text-[var(--color-wave)] bg-[var(--color-ocean)]/15 px-2 py-0.5 rounded-full">
-                                  {catVideos.length}
-                                </span>
-                              </div>
-                              <motion.div
-                                animate={{ rotate: isExpanded ? 180 : 0 }}
-                                transition={{ duration: 0.25 }}
-                              >
-                                <ChevronDown className="w-4 h-4 text-[var(--color-wave)]" />
-                              </motion.div>
-                            </button>
-
-                            <AnimatePresence>
-                              {isExpanded && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: 'auto', opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{ duration: 0.25 }}
-                                  className="overflow-hidden"
-                                >
-                                  <div className="px-4 pb-4 grid sm:grid-cols-2 gap-2">
-                                    {catVideos.map((video) => (
-                                      <a
-                                        key={video.id}
-                                        href={video.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="rounded-lg px-3.5 py-3 flex items-center gap-3 group hover:bg-[var(--color-ocean)]/15 transition-colors"
-                                      >
-                                        <div className="w-7 h-7 rounded-md bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors shrink-0">
-                                          <Play className="w-3.5 h-3.5 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
-                                        </div>
-                                        <span className="font-medium text-sm flex-1 text-[var(--color-mist)] group-hover:text-[var(--color-pearl)] transition-colors">{video.title}</span>
-                                        <ExternalLink className="w-3 h-3 text-[var(--color-wave)] group-hover:text-[var(--color-gold)] transition-colors shrink-0 opacity-0 group-hover:opacity-100" />
-                                      </a>
-                                    ))}
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
+                    <div className="px-6 pb-6 space-y-1">
+                      {trainingVideos.map((video, index) => (
+                        <a
+                          key={video.id}
+                          href={video.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-lg px-4 py-3 flex items-center gap-4 group hover:bg-[var(--color-ocean)]/10 transition-colors"
+                        >
+                          <span className="text-xs font-medium text-[var(--color-wave)] w-5 text-right shrink-0">
+                            {index + 1}
+                          </span>
+                          <div className="w-8 h-8 rounded-md bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors shrink-0">
+                            <Play className="w-4 h-4 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
                           </div>
-                        );
-                      })}
-                      {videoCategories.length === 0 && (
+                          <span className="font-medium text-sm flex-1 text-[var(--color-mist)] group-hover:text-[var(--color-pearl)] transition-colors">
+                            {video.title}
+                          </span>
+                          <ExternalLink className="w-3 h-3 text-[var(--color-wave)] group-hover:text-[var(--color-gold)] transition-colors shrink-0 opacity-0 group-hover:opacity-100" />
+                        </a>
+                      ))}
+                      {trainingVideos.length === 0 && (
                         <p className="text-[var(--color-mist)] text-sm text-center py-4">Training videos coming soon.</p>
                       )}
                     </div>
