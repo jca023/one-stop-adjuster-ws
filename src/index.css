@@ -67,6 +67,17 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--color-surf);
 }
 
+/* Gold calendar icon for date inputs (dark mode) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.6) sepia(1) saturate(5) hue-rotate(10deg) brightness(1.1);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 /* Selection styling */
 ::selection {
   background: var(--color-gold);
@@ -278,6 +289,12 @@ a {
 [data-theme="light"] .btn-secondary:hover {
   background: #F4F7F9;
   border-color: #B0BEC5;
+}
+
+/* Light mode: reset calendar icon to default */
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.7;
 }
 
 /* Scrollbar: light track */
