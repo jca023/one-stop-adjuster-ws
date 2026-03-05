@@ -1,8 +1,15 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Calendar, ExternalLink, Video as VideoIcon, Play, Clock, MapPin, DollarSign } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, ExternalLink, Video as VideoIcon, Play, Clock, MapPin, DollarSign, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { TrainingEvent } from '../lib/supabase';
+
+interface TrainingCalendarProps {
+  showAll?: boolean;
+  onEditEvent?: (event: TrainingEvent) => void;
+  onDeleteEvent?: (id: string) => void;
+  refreshKey?: number;
+}
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -40,7 +47,7 @@ function formatTime(time: string | null): string {
   return `${hour}:${pad(m)} ${ampm}`;
 }
 
-export default function TrainingCalendar(): React.JSX.Element {
+export default function TrainingCalendar({ showAll, onEditEvent, onDeleteEvent, refreshKey }: TrainingCalendarProps = {}): React.JSX.Element {
   const [viewYear, setViewYear] = useState(new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(new Date().getMonth());
   const [events, setEvents] = useState<TrainingEvent[]>([]);
@@ -61,19 +68,23 @@ export default function TrainingCalendar(): React.JSX.Element {
       const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
       const endDate = toDateKey(viewYear, viewMonth, daysInMonth);
 
-      const { data } = await supabase
+      let query = supabase
         .from('training_events')
         .select('*')
-        .eq('status', 'published')
         .gte('event_date', startDate)
         .lte('event_date', endDate)
         .order('event_date', { ascending: true });
 
+      if (!showAll) {
+        query = query.eq('status', 'published');
+      }
+
+      const { data } = await query;
       if (data) setEvents(data as TrainingEvent[]);
       setLoading(false);
     }
     fetchEvents();
-  }, [viewYear, viewMonth]);
+  }, [viewYear, viewMonth, showAll, refreshKey]);
 
   // Build event lookup by date
   const eventsByDate = useMemo(() => {
@@ -217,13 +228,15 @@ export default function TrainingCalendar(): React.JSX.Element {
                 <div className="w-full space-y-0.5 overflow-hidden">
                   {dayEvents.slice(0, 2).map((ev) => {
                     const typeColor = EVENT_TYPE_COLORS[ev.event_type] || EVENT_TYPE_COLORS.webinar;
+                    const isDraft = showAll && ev.status !== 'published';
                     return (
                       <div
                         key={ev.id}
-                        className="text-[10px] leading-tight font-medium px-1.5 py-0.5 rounded truncate"
+                        className={`text-[10px] leading-tight font-medium px-1.5 py-0.5 rounded truncate ${isDraft ? 'opacity-50 border border-dashed' : ''}`}
                         style={{
                           backgroundColor: `color-mix(in srgb, ${typeColor.bg} 25%, transparent)`,
                           color: typeColor.bg,
+                          ...(isDraft ? { borderColor: typeColor.bg } : {}),
                         }}
                       >
                         {ev.title}
@@ -295,16 +308,25 @@ export default function TrainingCalendar(): React.JSX.Element {
                         {/* Top row: badge + title + action */}
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <span
-                              className="inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full mb-2 uppercase tracking-wider"
-                              style={{
-                                backgroundColor: `color-mix(in srgb, ${typeColor.bg} 20%, transparent)`,
-                                color: typeColor.bg,
-                                border: `1px solid color-mix(in srgb, ${typeColor.bg} 30%, transparent)`,
-                              }}
-                            >
-                              {ev.event_type}
-                            </span>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span
+                                className="inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
+                                style={{
+                                  backgroundColor: `color-mix(in srgb, ${typeColor.bg} 20%, transparent)`,
+                                  color: typeColor.bg,
+                                  border: `1px solid color-mix(in srgb, ${typeColor.bg} 30%, transparent)`,
+                                }}
+                              >
+                                {ev.event_type}
+                              </span>
+                              {showAll && ev.status !== 'published' && (
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                                  ev.status === 'cancelled' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-[var(--color-ocean)]/30 text-[var(--color-wave)] border border-[var(--color-ocean)]/40'
+                                }`}>
+                                  {ev.status}
+                                </span>
+                              )}
+                            </div>
                             <h5 className="font-bold text-base">{ev.title}</h5>
                           </div>
                           {isPast && hasRecording ? (
@@ -378,6 +400,30 @@ export default function TrainingCalendar(): React.JSX.Element {
                                 <ExternalLink className="w-3 h-3" />
                                 Pay via Venmo
                               </a>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Admin edit/delete buttons */}
+                        {(onEditEvent || onDeleteEvent) && (
+                          <div className="flex items-center gap-2 pt-2 border-t border-[var(--color-ocean)]/15">
+                            {onEditEvent && (
+                              <button
+                                onClick={() => onEditEvent(ev)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-surf)]/15 text-[var(--color-surf)] hover:bg-[var(--color-surf)]/25 transition-colors"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                                Edit
+                              </button>
+                            )}
+                            {onDeleteEvent && (
+                              <button
+                                onClick={() => onDeleteEvent(ev.id)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                Delete
+                              </button>
                             )}
                           </div>
                         )}
