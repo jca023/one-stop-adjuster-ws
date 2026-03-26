@@ -24,7 +24,7 @@ export default function EulaPage(): React.JSX.Element {
               of your company, government, or other entity for which you are acting (for example, as an
               employee or governmental official), "you, your" means your entity and you are binding your
               entity to this Agreement. This Agreement governs your use of the One Stop Adjuster (OSA)
-              mobile application for Apple iOS or Google Android operating systems (including all related
+              mobile application for Apple iOS (iPhone and iPad) (including all related
               documentation, the "Application"). Toremy LLC may modify this Agreement from time to time,
               subject to the terms of this Agreement.
             </p>

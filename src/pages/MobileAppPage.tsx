@@ -49,13 +49,6 @@ const modules = [
   },
 ];
 
-const stats = [
-  { value: '300%', label: 'Productivity Increase' },
-  { value: '48hrs', label: 'Average Claim Resolution' },
-  { value: '95%', label: 'Customer Satisfaction' },
-  { value: '24/7', label: 'Support Available' },
-];
-
 const containerVariants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.08 } },
@@ -81,7 +74,7 @@ export default function MobileAppPage(): React.JSX.Element {
             <span className="text-gradient">All Your Tools in Your Pocket</span>
           </h1>
           <p className="text-[var(--color-mist)] text-lg max-w-2xl mx-auto">
-            Take your entire claims operation mobile with our iOS and Android app
+            Take your entire claims operation mobile with our iOS app for iPhone and iPad
           </p>
         </motion.div>
 
@@ -193,23 +186,6 @@ export default function MobileAppPage(): React.JSX.Element {
           ))}
         </motion.div>
 
-        {/* Stats Bar */}
-        <motion.div
-          className="glass rounded-2xl p-8"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-3xl md:text-4xl font-bold text-[var(--color-gold)]">{stat.value}</p>
-                <p className="text-[var(--color-mist)] text-sm mt-1">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </section>
   );

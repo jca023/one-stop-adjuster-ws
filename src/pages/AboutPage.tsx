@@ -11,7 +11,7 @@ const teamMembers = [
   {
     name: 'Jeremy Isenburg',
     title: 'CTO & Co-Founder',
-    photo: '/team/jeremy-isenburg.png',
+    photo: '/team/jeremy-isenburg.jpg',
     bio: 'Jeremy brings extensive experience from tech giants Amazon, Google, and Microsoft, where he specialized in designing and deploying enterprise-scale systems. He leads the technical vision for transforming flood claims management into a streamlined, digital-first process.',
   },
   {

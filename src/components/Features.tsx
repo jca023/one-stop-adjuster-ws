@@ -170,18 +170,6 @@ export default function Features() {
           ))}
         </div>
 
-        {/* Bottom CTA */}
-        <motion.div
-          className="text-center mt-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <a href="#how-it-works" className="btn-secondary inline-flex items-center gap-2">
-            See It In Action
-          </a>
-        </motion.div>
       </div>
     </section>
   );

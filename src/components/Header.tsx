@@ -176,9 +176,6 @@ export default function Header(): React.JSX.Element {
             </AnimatePresence>
           </div>
 
-          <Link to="/contact" className="btn-primary text-sm py-2 px-5">
-            Get Started
-          </Link>
         </motion.div>
 
         {/* Mobile: theme toggle + menu button */}
@@ -276,16 +273,6 @@ export default function Header(): React.JSX.Element {
                 ))}
               </div>
 
-              {/* CTA */}
-              <div className="px-5 pb-8">
-                <Link
-                  to="/contact"
-                  className="btn-primary text-center block text-sm py-2.5"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Get Started
-                </Link>
-              </div>
             </motion.div>
           </>
         )}
