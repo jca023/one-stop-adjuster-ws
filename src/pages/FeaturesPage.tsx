@@ -105,9 +105,9 @@ export default function FeaturesPage(): React.JSX.Element {
             <motion.div
               key={feature.title}
               variants={cardVariants}
-              className="glass rounded-2xl p-6 group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors"
+              className="glass rounded-2xl p-6 group hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[var(--color-gold)]/5 hover:border-[var(--color-gold)]/30 border border-transparent transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center mb-4 group-hover:bg-[var(--color-gold)]/20 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center mb-4 group-hover:bg-[var(--color-gold)]/20 group-hover:scale-110 transition-all duration-300">
                 <feature.icon className="w-6 h-6 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
               </div>
               <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
