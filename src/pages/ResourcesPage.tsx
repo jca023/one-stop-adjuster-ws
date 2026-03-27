@@ -304,15 +304,38 @@ export default function ResourcesPage(): React.JSX.Element {
             transition={{ duration: 0.4 }}
             className="glass rounded-2xl p-8 md:p-12 max-w-2xl mx-auto"
           >
-            <h3 className="text-xl font-semibold mb-4">Need Help?</h3>
-            <div className="space-y-4 text-[var(--color-mist)]">
-              <p>Our support team is available to help you get the most out of One Stop Adjuster.</p>
-              <div className="space-y-2">
-                <p><strong className="text-[var(--color-pearl)]">Phone:</strong> 251-680-6736</p>
-                <p><strong className="text-[var(--color-pearl)]">Email:</strong> info@one-stop-adjuster.com</p>
-                <p><strong className="text-[var(--color-pearl)]">Hours:</strong> Mon-Fri 8am-5pm | Sat-Sun 9am-3pm</p>
+            <h3 className="text-xl font-semibold mb-6">Need Help?</h3>
+            <div className="space-y-8 text-[var(--color-mist)]">
+              {/* Step 1: Bug Report / Feedback */}
+              <div>
+                <h4 className="text-lg font-semibold text-[var(--color-gold)] mb-3">Step 1: Submitting a Bug Report or Feedback</h4>
+                <p className="mb-4">
+                  To ensure the One Stop Adjuster (OSA) platform continues to meet the rigorous demands of field adjusting, we prioritize your direct feedback. If you encounter a technical issue or have a suggestion for improvement, please use the Report Bug/Feedback feature within the app.
+                </p>
+                <p className="font-medium text-[var(--color-pearl)] mb-3">Follow these steps to submit a comprehensive report:</p>
+                <ol className="list-decimal list-inside space-y-3 ml-2">
+                  <li><strong className="text-[var(--color-pearl)]">Locate the Feature:</strong> Open the OSA app and tap the OSA Icon to open the main menu. Scroll to the bottom and select Report Bug/Feedback.</li>
+                  <li><strong className="text-[var(--color-pearl)]">Provide Detailed Information:</strong> In the description field, please outline the issue or suggestion with as much detail as possible. Clearly stating what occurred and the steps leading up to it helps our development team resolve the matter efficiently.</li>
+                  <li><strong className="text-[var(--color-pearl)]">Include Screen Captures:</strong> Visual context is invaluable. We highly recommend including a screen capture or recording of the specific screen or error message you are referencing.</li>
+                  <li><strong className="text-[var(--color-pearl)]">Provide Your Email Address:</strong> It is essential to include a valid email address. This allows our support team to provide direct follow-up correspondence, request additional clarification if needed, and notify you once the issue has been resolved.</li>
+                  <li><strong className="text-[var(--color-pearl)]">Submit:</strong> Once all fields are complete, tap Submit.</li>
+                </ol>
+                <p className="mt-4 text-sm italic">
+                  Your input is vital to the evolution of the OSA ecosystem. By providing detailed reports and a reliable point of contact, you help us maintain the high standard of reliability you expect in the field.
+                </p>
               </div>
-              <p className="text-sm">Response time: Within 4 hours during business hours.</p>
+
+              {/* Step 2: Contact Support */}
+              <div>
+                <h4 className="text-lg font-semibold text-[var(--color-gold)] mb-3">Step 2: Contact Support</h4>
+                <p className="mb-4">Our support team is available to help you get the most out of One Stop Adjuster.</p>
+                <div className="space-y-2">
+                  <p><strong className="text-[var(--color-pearl)]">Phone:</strong> 251-680-6736</p>
+                  <p><strong className="text-[var(--color-pearl)]">Email:</strong> info@one-stop-adjuster.com</p>
+                  <p><strong className="text-[var(--color-pearl)]">Hours:</strong> Mon-Fri 8am-5pm | Sat-Sun 9am-3pm</p>
+                </div>
+                <p className="text-sm mt-3">Response time: Up to 12 hours during business hours.</p>
+              </div>
             </div>
           </motion.div>
         )}

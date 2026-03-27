@@ -90,7 +90,7 @@ function FeatureCard({
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <div className="glass rounded-2xl p-6 h-full transition-all duration-300 hover:bg-[var(--color-deep)]/80 hover:-translate-y-1">
+      <div className="glass rounded-2xl p-6 h-full border border-transparent hover:border-[var(--color-gold)]/30 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[var(--color-gold)]/5 transition-all duration-300">
         {/* Icon */}
         <div
           className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
@@ -170,18 +170,6 @@ export default function Features() {
           ))}
         </div>
 
-        {/* Bottom CTA */}
-        <motion.div
-          className="text-center mt-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <a href="#how-it-works" className="btn-secondary inline-flex items-center gap-2">
-            See It In Action
-          </a>
-        </motion.div>
       </div>
     </section>
   );

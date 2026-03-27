@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Star, ArrowRight, ExternalLink, Calendar, FolderOpen, Inbox } from 'lucide-react';
+import { FileText, Star, ArrowRight, ExternalLink, Calendar, FolderOpen, Inbox, Video } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
@@ -70,6 +70,14 @@ export default function AdminDashboardPage(): React.JSX.Element {
       description: 'View contact form and demo request submissions',
       publicPath: '/contact',
     },
+    {
+      title: 'Feature Videos',
+      count: 7,
+      icon: Video,
+      href: '/admin/module-videos',
+      description: 'Add YouTube demo videos for each app feature module',
+      publicPath: '/mobile-app',
+    },
   ];
 
   return (
@@ -99,10 +107,10 @@ export default function AdminDashboardPage(): React.JSX.Element {
             >
               <Link
                 to={card.href}
-                className="glass rounded-2xl p-6 flex flex-col h-full group hover:border-[var(--color-gold)]/30 border border-transparent transition-all block"
+                className="glass rounded-2xl p-6 flex flex-col h-full group hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[var(--color-gold)]/5 hover:border-[var(--color-gold)]/30 border border-transparent transition-all duration-300 block"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 transition-colors">
+                  <div className="w-12 h-12 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center group-hover:bg-[var(--color-gold)]/20 group-hover:scale-110 transition-all duration-300">
                     <card.icon className="w-6 h-6 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
                   </div>
                   <ArrowRight className="w-5 h-5 text-[var(--color-wave)] group-hover:text-[var(--color-gold)] transition-colors" />

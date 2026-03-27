@@ -96,6 +96,14 @@ export interface Document {
   updated_at: string;
 }
 
+export interface ModuleVideo {
+  id: string;
+  module_key: string;
+  title: string;
+  video_url: string;
+  updated_at: string;
+}
+
 export interface ContactSubmission {
   id: string;
   name: string;

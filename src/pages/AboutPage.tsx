@@ -11,7 +11,7 @@ const teamMembers = [
   {
     name: 'Jeremy Isenburg',
     title: 'CTO & Co-Founder',
-    photo: '/team/jeremy-isenburg.png',
+    photo: '/team/jeremy-isenburg.jpg',
     bio: 'Jeremy brings extensive experience from tech giants Amazon, Google, and Microsoft, where he specialized in designing and deploying enterprise-scale systems. He leads the technical vision for transforming flood claims management into a streamlined, digital-first process.',
   },
   {
@@ -115,10 +115,10 @@ export default function AboutPage(): React.JSX.Element {
             <motion.div
               key={value.title}
               variants={itemVariants}
-              className="glass rounded-2xl p-6 border border-transparent hover:border-[var(--color-gold)]/30 transition-colors"
+              className="glass rounded-2xl p-6 group border border-transparent hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[var(--color-gold)]/5 hover:border-[var(--color-gold)]/30 transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center mb-4">
-                <value.icon className="w-6 h-6 text-[var(--color-surf)]" />
+              <div className="w-12 h-12 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center mb-4 group-hover:bg-[var(--color-gold)]/20 group-hover:scale-110 transition-all duration-300">
+                <value.icon className="w-6 h-6 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors duration-300" />
               </div>
               <h3 className="text-lg font-semibold mb-3">{value.title}</h3>
               <p className="text-[var(--color-mist)] text-sm leading-relaxed">{value.description}</p>
@@ -153,7 +153,7 @@ export default function AboutPage(): React.JSX.Element {
             <motion.div
               key={member.name}
               variants={itemVariants}
-              className="glass rounded-2xl overflow-hidden group"
+              className="glass rounded-2xl overflow-hidden group border border-transparent hover:border-[var(--color-gold)]/30 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[var(--color-gold)]/5 transition-all duration-300"
             >
               <div className="aspect-square bg-[var(--color-ocean)]/20 overflow-hidden">
                 <img

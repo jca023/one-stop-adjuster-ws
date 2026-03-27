@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Smartphone, Star, Download, Users, LayoutDashboard, Map,
-  Camera, ClipboardCheck, List, Package, FileText,
+  Camera, ClipboardCheck, List, Package, FileText, Play,
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const highlights = [
   { icon: Smartphone, title: 'Work Offline, Sync Online', description: 'Continue working even without internet connection. All changes sync automatically when you\'re back online.' },
@@ -13,47 +15,47 @@ const highlights = [
 
 const modules = [
   {
+    key: 'claim-dashboard',
     icon: LayoutDashboard,
     title: 'Claim Dashboard',
     bullets: ['Real-time claim status updates', 'Quick access to claim details', 'Assignment tracking and history', 'Task management and reminders', 'Performance metrics at a glance'],
   },
   {
+    key: 'map-schedule',
     icon: Map,
     title: 'Map & Schedule',
     bullets: ['GPS-enabled route optimization', 'Interactive claim location mapping', 'Appointment scheduling and coordination', 'Calendar integration and sync', 'Distance and travel time estimates'],
   },
   {
+    key: 'photos',
     icon: Camera,
     title: 'Photos',
     bullets: ['High-resolution photo capture', 'AI-powered auto-labeling', 'Room-by-room organization', 'Annotation and markup tools', 'Instant cloud sync and backup'],
   },
   {
+    key: 'inspection',
     icon: ClipboardCheck,
     title: 'Inspection',
     bullets: ['Photo capture with annotations', 'Voice-to-text field notes', 'Digital sketches and measurements', 'Damage assessment templates', 'Automatic photo organization'],
   },
   {
+    key: 'line-items',
     icon: List,
     title: 'Line Items',
     bullets: ['Xactimate pricing integration', 'Room-based line item entry', 'Quick-add from saved templates', 'Real-time RCV/ACV calculations', 'Export to estimating software'],
   },
   {
+    key: 'contents',
     icon: Package,
     title: 'Contents',
     bullets: ['Barcode and QR code scanning', 'Item inventory management', 'Photo cataloging per item', 'Valuation and pricing tools', 'Replacement cost estimates'],
   },
   {
+    key: 'forms',
     icon: FileText,
     title: 'Forms',
     bullets: ['Digital signature capture', 'Customizable form templates', 'Auto-fill and data validation', 'Offline form completion', 'Instant PDF generation and export'],
   },
-];
-
-const stats = [
-  { value: '300%', label: 'Productivity Increase' },
-  { value: '48hrs', label: 'Average Claim Resolution' },
-  { value: '95%', label: 'Customer Satisfaction' },
-  { value: '24/7', label: 'Support Available' },
 ];
 
 const containerVariants = {
@@ -67,6 +69,22 @@ const itemVariants = {
 };
 
 export default function MobileAppPage(): React.JSX.Element {
+  const [videoUrls, setVideoUrls] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    async function fetchVideos(): Promise<void> {
+      const { data } = await supabase.from('module_videos').select('module_key,video_url');
+      if (data) {
+        const map: Record<string, string> = {};
+        for (const row of data) {
+          if (row.video_url) map[row.module_key] = row.video_url;
+        }
+        setVideoUrls(map);
+      }
+    }
+    fetchVideos();
+  }, []);
+
   return (
     <section className="pt-32 pb-20">
       <div className="container">
@@ -81,7 +99,7 @@ export default function MobileAppPage(): React.JSX.Element {
             <span className="text-gradient">All Your Tools in Your Pocket</span>
           </h1>
           <p className="text-[var(--color-mist)] text-lg max-w-2xl mx-auto">
-            Take your entire claims operation mobile with our iOS and Android app
+            Take your entire claims operation mobile with our iOS app for iPhone and iPad
           </p>
         </motion.div>
 
@@ -96,9 +114,9 @@ export default function MobileAppPage(): React.JSX.Element {
             <motion.div
               key={item.title}
               variants={itemVariants}
-              className="glass rounded-2xl p-6 text-center"
+              className="glass rounded-2xl p-6 text-center group hover:-translate-y-1 hover:shadow-lg hover:shadow-[var(--color-surf)]/5 border border-transparent hover:border-[var(--color-surf)]/20 transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center mx-auto mb-4">
+              <div className="w-12 h-12 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center mx-auto mb-4 group-hover:bg-[var(--color-surf)]/20 group-hover:scale-110 transition-all duration-300">
                 <item.icon className="w-6 h-6 text-[var(--color-surf)]" />
               </div>
               <h3 className="font-semibold mb-2">{item.title}</h3>
@@ -171,45 +189,42 @@ export default function MobileAppPage(): React.JSX.Element {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          {modules.map((mod) => (
-            <motion.div
-              key={mod.title}
-              variants={itemVariants}
-              className="glass rounded-2xl p-6 group hover:border-[var(--color-gold)]/30 border border-transparent transition-colors"
-            >
-              <div className="w-10 h-10 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center mb-4 group-hover:bg-[var(--color-gold)]/20 transition-colors">
-                <mod.icon className="w-5 h-5 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
-              </div>
-              <h3 className="font-semibold mb-3">{mod.title}</h3>
-              <ul className="space-y-1.5">
-                {mod.bullets.map((bullet) => (
-                  <li key={bullet} className="text-[var(--color-mist)] text-sm flex items-start gap-2">
-                    <span className="text-[var(--color-gold)] mt-1 text-xs">&#9679;</span>
-                    {bullet}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          ))}
+          {modules.map((mod) => {
+            const videoUrl = videoUrls[mod.key];
+            return (
+              <motion.div
+                key={mod.title}
+                variants={itemVariants}
+                className="glass rounded-2xl p-6 group hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[var(--color-gold)]/5 hover:border-[var(--color-gold)]/30 border border-transparent transition-all duration-300"
+              >
+                <div className="w-10 h-10 rounded-lg bg-[var(--color-ocean)]/20 flex items-center justify-center mb-4 group-hover:bg-[var(--color-gold)]/20 group-hover:scale-110 transition-all duration-300">
+                  <mod.icon className="w-5 h-5 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors duration-300" />
+                </div>
+                <h3 className="font-semibold mb-3">{mod.title}</h3>
+                <ul className="space-y-1.5">
+                  {mod.bullets.map((bullet) => (
+                    <li key={bullet} className="text-[var(--color-mist)] text-sm flex items-start gap-2">
+                      <span className="text-[var(--color-gold)] mt-1 text-xs">&#9679;</span>
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+                {videoUrl && (
+                  <a
+                    href={videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-surf)] hover:text-[var(--color-gold)] transition-colors"
+                  >
+                    <Play className="w-4 h-4" />
+                    Watch Demo
+                  </a>
+                )}
+              </motion.div>
+            );
+          })}
         </motion.div>
 
-        {/* Stats Bar */}
-        <motion.div
-          className="glass rounded-2xl p-8"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-3xl md:text-4xl font-bold text-[var(--color-gold)]">{stat.value}</p>
-                <p className="text-[var(--color-mist)] text-sm mt-1">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </section>
   );

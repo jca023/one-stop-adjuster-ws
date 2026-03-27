@@ -318,10 +318,10 @@ export default function AdjusterPortalPage(): React.JSX.Element {
             <motion.div
               key={feature.title}
               variants={itemVariants}
-              className="glass rounded-2xl p-6 group hover:border-[var(--color-gold)]/30 transition-colors"
+              className="glass rounded-2xl p-6 group hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[var(--color-gold)]/5 hover:border-[var(--color-gold)]/30 border border-transparent transition-all duration-300"
             >
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[var(--color-ocean)]/20 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--color-gold)]/20 group-hover:scale-110 transition-all duration-300">
                   <feature.icon className="w-5 h-5 text-[var(--color-surf)] group-hover:text-[var(--color-gold)] transition-colors" />
                 </div>
                 <div>
