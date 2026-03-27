@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Video, FileText, HelpCircle, ExternalLink, Download, ArrowRight, Clock, User, ChevronDown, Play } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { Post, TrainingVideo, DocumentCategory, Document } from '../lib/supabase';
 import TrainingCalendar from '../components/TrainingCalendar';
@@ -15,7 +15,9 @@ const tabs = [
 
 
 export default function ResourcesPage(): React.JSX.Element {
-  const [activeTab, setActiveTab] = useState('docs');
+  const [searchParams] = useSearchParams();
+  const registrationStatus = searchParams.get('registration');
+  const [activeTab, setActiveTab] = useState(registrationStatus ? 'training' : 'docs');
   const [recentPosts, setRecentPosts] = useState<Post[]>([]);
   const [trainingVideos, setTrainingVideos] = useState<TrainingVideo[]>([]);
   const [videosExpanded, setVideosExpanded] = useState(false);
@@ -103,6 +105,26 @@ export default function ResourcesPage(): React.JSX.Element {
             </button>
           ))}
         </div>
+
+        {/* Registration status banners */}
+        {registrationStatus === 'success' && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-xl bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 text-[var(--color-success)] text-sm text-center max-w-2xl mx-auto"
+          >
+            Registration complete! Check your email for confirmation and class details.
+          </motion.div>
+        )}
+        {registrationStatus === 'cancelled' && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-xl bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 text-[var(--color-gold)] text-sm text-center max-w-2xl mx-auto"
+          >
+            Payment was cancelled. You can try registering again from the training calendar.
+          </motion.div>
+        )}
 
         {/* Documentation Tab */}
         {activeTab === 'docs' && (
