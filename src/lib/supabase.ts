@@ -49,9 +49,25 @@ export interface TrainingEvent {
   fee: number;
   venmo_qr_url: string | null;
   recording_url: string | null;
+  registration_deadline: string | null;
+  max_capacity: number | null;
   status: 'draft' | 'published' | 'cancelled';
   created_at: string;
   updated_at: string;
+}
+
+export interface TrainingRegistration {
+  id: string;
+  event_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  company: string | null;
+  payment_status: 'pending' | 'paid' | 'free' | 'refunded';
+  stripe_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  amount_paid: number;
+  registered_at: string;
 }
 
 export interface TrainingVideo {
