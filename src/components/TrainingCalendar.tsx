@@ -425,7 +425,16 @@ export default function TrainingCalendar({ showAll, onEditEvent, onDeleteEvent, 
                             )}
                             {(() => {
                               const now = new Date();
-                              const deadlinePassed = ev.registration_deadline && new Date(ev.registration_deadline) < now;
+                              // Default deadline: 1 hour before event start (if no explicit deadline set)
+                              let effectiveDeadline: Date | null = null;
+                              if (ev.registration_deadline) {
+                                effectiveDeadline = new Date(ev.registration_deadline);
+                              } else if (ev.start_time) {
+                                const [h, m] = ev.start_time.split(':').map(Number);
+                                effectiveDeadline = new Date(`${ev.event_date}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`);
+                                effectiveDeadline.setHours(effectiveDeadline.getHours() - 1);
+                              }
+                              const deadlinePassed = effectiveDeadline && effectiveDeadline < now;
                               const isFull = ev.max_capacity && (registrationCounts[ev.id] || 0) >= ev.max_capacity;
                               if (deadlinePassed) return <p className="text-xs text-[var(--color-wave)] italic">Registration closed</p>;
                               if (isFull) return <p className="text-xs text-[var(--color-wave)] italic">Class is full</p>;

@@ -49,8 +49,15 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Check registration deadline
-    if (event.registration_deadline && new Date(event.registration_deadline) < new Date()) {
+    // Check registration deadline (defaults to 1 hour before event start)
+    let effectiveDeadline: Date | null = null;
+    if (event.registration_deadline) {
+      effectiveDeadline = new Date(event.registration_deadline);
+    } else if (event.start_time) {
+      effectiveDeadline = new Date(`${event.event_date}T${event.start_time}`);
+      effectiveDeadline.setHours(effectiveDeadline.getHours() - 1);
+    }
+    if (effectiveDeadline && effectiveDeadline < new Date()) {
       return new Response(
         JSON.stringify({ error: 'Registration has closed for this event' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
