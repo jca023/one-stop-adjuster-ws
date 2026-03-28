@@ -120,6 +120,14 @@ export interface ModuleVideo {
   updated_at: string;
 }
 
+export interface Subscriber {
+  id: string;
+  email: string;
+  name: string | null;
+  status: 'active' | 'unsubscribed';
+  subscribed_at: string;
+}
+
 export interface ContactSubmission {
   id: string;
   name: string;
