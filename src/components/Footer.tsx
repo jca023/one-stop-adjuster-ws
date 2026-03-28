@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import logoSvg from '../assets/logos/logo.svg';
+import SubscribeForm from './SubscribeForm';
 
 const socialLinks = [
   {
@@ -137,6 +138,19 @@ export default function Footer(): React.JSX.Element {
             </motion.div>
           ))}
         </div>
+
+        {/* Subscribe */}
+        <motion.div
+          className="glass rounded-xl p-6 mb-12 max-w-md"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <h4 className="font-semibold text-sm mb-2">Subscribe to Updates</h4>
+          <p className="text-xs text-[var(--color-mist)] mb-3">New training events, blog posts, and platform news.</p>
+          <SubscribeForm compact />
+        </motion.div>
 
         {/* Bottom bar */}
         <motion.div

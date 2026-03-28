@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { Post, TrainingVideo, DocumentCategory, Document } from '../lib/supabase';
 import TrainingCalendar from '../components/TrainingCalendar';
+import SubscribeForm from '../components/SubscribeForm';
 
 const tabs = [
   { id: 'docs', label: 'Documentation', icon: BookOpen },
@@ -86,6 +87,18 @@ export default function ResourcesPage(): React.JSX.Element {
           <p className="text-[var(--color-mist)] text-lg max-w-2xl mx-auto">
             Everything you need to maximize your success with OSA
           </p>
+        </motion.div>
+
+        {/* Subscribe */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="glass rounded-2xl p-6 max-w-xl mx-auto mb-12 text-center"
+        >
+          <h3 className="text-sm font-semibold text-[var(--color-gold)] mb-2">Stay Updated</h3>
+          <p className="text-sm text-[var(--color-mist)] mb-4">Get notified about new training events, blog posts, and platform updates.</p>
+          <SubscribeForm />
         </motion.div>
 
         {/* Tabs */}
