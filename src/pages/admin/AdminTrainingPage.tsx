@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, X, Save, ArrowLeft, Calendar, Video, GripVertical, ExternalLink } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Save, ArrowLeft, Calendar, Video, GripVertical, ExternalLink, Users, Download, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   DndContext,
@@ -22,7 +22,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '../../lib/supabase';
-import type { TrainingEvent, TrainingVideo } from '../../lib/supabase';
+import type { TrainingEvent, TrainingVideo, TrainingRegistration } from '../../lib/supabase';
 import TrainingCalendar from '../../components/TrainingCalendar';
 
 const EVENT_TYPES = ['webinar', 'in-person', 'workshop', 'deadline'] as const;
@@ -38,6 +38,8 @@ const emptyEvent: Partial<TrainingEvent> = {
   fee: 0,
   venmo_qr_url: '',
   recording_url: '',
+  registration_deadline: null,
+  max_capacity: null,
   status: 'published',
 };
 
@@ -159,7 +161,7 @@ function VideoDragPreview({ vid }: { vid: TrainingVideo }): React.JSX.Element {
 /* ---------- main component ---------- */
 
 export default function AdminTrainingPage(): React.JSX.Element {
-  const [subTab, setSubTab] = useState<'events' | 'videos'>('events');
+  const [subTab, setSubTab] = useState<'events' | 'videos' | 'registrations'>('events');
 
   // Events state
   const [editingEvent, setEditingEvent] = useState<Partial<TrainingEvent> | null>(null);
@@ -173,6 +175,27 @@ export default function AdminTrainingPage(): React.JSX.Element {
   // Shared state
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Registrations state
+  const [registrations, setRegistrations] = useState<TrainingRegistration[]>([]);
+  const [regEvents, setRegEvents] = useState<{ id: string; title: string; event_date: string; max_capacity: number | null }[]>([]);
+  const [selectedEventFilter, setSelectedEventFilter] = useState<string>('all');
+  const [regLoading, setRegLoading] = useState(false);
+
+  const fetchRegistrations = useCallback(async () => {
+    setRegLoading(true);
+    const [{ data: regs }, { data: evts }] = await Promise.all([
+      supabase.from('training_registrations').select('*').order('registered_at', { ascending: false }),
+      supabase.from('training_events').select('id,title,event_date,max_capacity').order('event_date', { ascending: false }),
+    ]);
+    if (regs) setRegistrations(regs);
+    if (evts) setRegEvents(evts);
+    setRegLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (subTab === 'registrations') fetchRegistrations();
+  }, [subTab, fetchRegistrations]);
 
   // DnD state
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
@@ -282,6 +305,8 @@ export default function AdminTrainingPage(): React.JSX.Element {
       fee: hasPaidEvent ? editingEvent.fee : 0,
       venmo_qr_url: hasPaidEvent ? (editingEvent.venmo_qr_url || null) : null,
       recording_url: editingEvent.recording_url || null,
+      registration_deadline: editingEvent.registration_deadline || null,
+      max_capacity: editingEvent.max_capacity || null,
       status: editingEvent.status || 'published',
       updated_at: new Date().toISOString(),
     };
@@ -381,17 +406,19 @@ export default function AdminTrainingPage(): React.JSX.Element {
             </Link>
             <h1 className="text-2xl md:text-3xl font-bold">Training</h1>
           </div>
-          <button
-            onClick={() =>
-              subTab === 'events'
-                ? setEditingEvent({ ...emptyEvent })
-                : openNewVideo()
-            }
-            className="btn-primary flex items-center gap-2 !px-4 !py-2 text-sm"
-          >
-            <Plus className="w-4 h-4" />
-            {subTab === 'events' ? 'New Event' : 'Add Video'}
-          </button>
+          {subTab !== 'registrations' && (
+            <button
+              onClick={() =>
+                subTab === 'events'
+                  ? setEditingEvent({ ...emptyEvent })
+                  : openNewVideo()
+              }
+              className="btn-primary flex items-center gap-2 !px-4 !py-2 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              {subTab === 'events' ? 'New Event' : 'Add Video'}
+            </button>
+          )}
         </div>
 
         {/* Sub-tabs */}
@@ -417,6 +444,17 @@ export default function AdminTrainingPage(): React.JSX.Element {
           >
             <Video className="w-4 h-4" />
             Training Videos
+          </button>
+          <button
+            onClick={() => setSubTab('registrations')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              subTab === 'registrations'
+                ? 'bg-[var(--color-gold)] text-[var(--color-abyss)]'
+                : 'glass text-[var(--color-mist)] hover:text-[var(--color-pearl)]'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            Registrations
           </button>
         </div>
 
@@ -502,6 +540,160 @@ export default function AdminTrainingPage(): React.JSX.Element {
               </div>
             )}
           </>
+        )}
+
+        {/* Registrations tab */}
+        {subTab === 'registrations' && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4 flex-wrap">
+              <select
+                value={selectedEventFilter}
+                onChange={(e) => setSelectedEventFilter(e.target.value)}
+                className="px-4 py-2 rounded-lg bg-[var(--color-abyss)] border border-[var(--color-wave)]/20 text-[var(--color-pearl)] text-sm"
+              >
+                <option value="all">All Events</option>
+                {regEvents.map((ev) => (
+                  <option key={ev.id} value={ev.id}>{ev.title} ({ev.event_date})</option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => {
+                  const filtered = selectedEventFilter === 'all'
+                    ? registrations
+                    : registrations.filter((r) => r.event_id === selectedEventFilter);
+                  const csv = [
+                    'Name,Email,Phone,Company,Status,Amount,Date',
+                    ...filtered.map((r) =>
+                      `"${r.name}","${r.email}","${r.phone}","${r.company || ''}","${r.payment_status}","${r.amount_paid}","${r.registered_at}"`
+                    ),
+                  ].join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'registrations.csv';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-ocean)]/30 text-[var(--color-surf)] hover:bg-[var(--color-ocean)]/50 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </button>
+            </div>
+
+            {/* Summary */}
+            {(() => {
+              const filtered = selectedEventFilter === 'all'
+                ? registrations
+                : registrations.filter((r) => r.event_id === selectedEventFilter);
+              const paid = filtered.filter((r) => r.payment_status === 'paid').length;
+              const free = filtered.filter((r) => r.payment_status === 'free').length;
+              const pending = filtered.filter((r) => r.payment_status === 'pending').length;
+              const revenue = filtered
+                .filter((r) => r.payment_status === 'paid')
+                .reduce((sum, r) => sum + Number(r.amount_paid), 0);
+
+              return (
+                <div className="flex gap-3 flex-wrap text-sm">
+                  <span className="px-3 py-1 rounded-full bg-[var(--color-ocean)]/20 text-[var(--color-pearl)]">{filtered.length} registered</span>
+                  <span className="px-3 py-1 rounded-full bg-[var(--color-success)]/20 text-[var(--color-success)]">{paid} paid</span>
+                  <span className="px-3 py-1 rounded-full bg-[var(--color-surf)]/20 text-[var(--color-surf)]">{free} free</span>
+                  {pending > 0 && <span className="px-3 py-1 rounded-full bg-[var(--color-gold)]/20 text-[var(--color-gold)]">{pending} pending</span>}
+                  <span className="px-3 py-1 rounded-full bg-[var(--color-gold)]/20 text-[var(--color-gold)]">${revenue.toFixed(2)} revenue</span>
+                </div>
+              );
+            })()}
+
+            {/* Registration list */}
+            {regLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="glass rounded-xl p-5 animate-pulse">
+                    <div className="h-5 bg-[var(--color-ocean)]/30 rounded w-1/3 mb-2" />
+                    <div className="h-4 bg-[var(--color-ocean)]/20 rounded w-1/4" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {(selectedEventFilter === 'all'
+                  ? registrations
+                  : registrations.filter((r) => r.event_id === selectedEventFilter)
+                ).map((reg) => {
+                  const ev = regEvents.find((e) => e.id === reg.event_id);
+                  const statusColors: Record<string, string> = {
+                    paid: 'bg-[var(--color-success)]/20 text-[var(--color-success)]',
+                    free: 'bg-[var(--color-surf)]/20 text-[var(--color-surf)]',
+                    pending: 'bg-[var(--color-gold)]/20 text-[var(--color-gold)]',
+                    refunded: 'bg-red-500/20 text-red-400',
+                  };
+
+                  return (
+                    <div key={reg.id} className="glass rounded-xl p-4 flex items-center justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-sm">{reg.name}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${statusColors[reg.payment_status] || ''}`}>
+                            {reg.payment_status}
+                          </span>
+                        </div>
+                        <div className="text-xs text-[var(--color-mist)] space-x-3">
+                          <span>{reg.email}</span>
+                          <span>{reg.phone}</span>
+                          {reg.company && <span>{reg.company}</span>}
+                        </div>
+                        {selectedEventFilter === 'all' && ev && (
+                          <div className="text-xs text-[var(--color-wave)] mt-1">{ev.title} — {ev.event_date}</div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {reg.amount_paid > 0 && (
+                          <span className="text-sm font-bold text-[var(--color-gold)]">${Number(reg.amount_paid).toFixed(2)}</span>
+                        )}
+                        {reg.payment_status === 'paid' && (
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`Refund ${reg.name}?`)) return;
+                              const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+                              const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+                              const res = await fetch(`${supabaseUrl}/functions/v1/refund-registration`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseKey}` },
+                                body: JSON.stringify({ registration_id: reg.id }),
+                              });
+                              if (res.ok) fetchRegistrations();
+                            }}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-colors"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            Refund
+                          </button>
+                        )}
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Delete registration for ${reg.name}?`)) return;
+                            await supabase.from('training_registrations').delete().eq('id', reg.id);
+                            fetchRegistrations();
+                          }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {registrations.length === 0 && (
+                  <div className="glass rounded-2xl p-8 text-center">
+                    <Users className="w-12 h-12 text-[var(--color-wave)] mx-auto mb-4" />
+                    <p className="text-[var(--color-mist)]">No registrations yet.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         {/* Event editor modal */}
@@ -616,6 +808,30 @@ export default function AdminTrainingPage(): React.JSX.Element {
                       placeholder="Add after the session if recorded"
                     />
                     <p className="text-xs text-[var(--color-wave)] mt-1">Past events with a recording show a "Watch Recording" button</p>
+                  </div>
+
+                  {/* Registration fields */}
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-mist)] mb-1">Registration Deadline</label>
+                      <input
+                        type="datetime-local"
+                        value={editingEvent.registration_deadline?.slice(0, 16) || ''}
+                        onChange={(e) => setEditingEvent({ ...editingEvent, registration_deadline: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                        className={`${inputClass} [color-scheme:dark]`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-mist)] mb-1">Max Capacity</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={editingEvent.max_capacity || ''}
+                        onChange={(e) => setEditingEvent({ ...editingEvent, max_capacity: e.target.value ? parseInt(e.target.value) : null })}
+                        placeholder="Unlimited"
+                        className={inputClass}
+                      />
+                    </div>
                   </div>
 
                   {/* Paid event toggle */}

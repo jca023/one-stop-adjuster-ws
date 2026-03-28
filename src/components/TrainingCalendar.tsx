@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Calendar, ExternalLink, Video as VideoIcon, Play, Clock, MapPin, DollarSign, Pencil, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Video as VideoIcon, Play, Clock, MapPin, DollarSign, Pencil, Trash2, UserPlus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { TrainingEvent } from '../lib/supabase';
+import RegistrationModal from './RegistrationModal';
 
 interface TrainingCalendarProps {
   showAll?: boolean;
@@ -54,6 +55,9 @@ export default function TrainingCalendar({ showAll, onEditEvent, onDeleteEvent, 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const detailPanelRef = useRef<HTMLDivElement>(null);
+  const [registerEvent, setRegisterEvent] = useState<TrainingEvent | null>(null);
+  const [registrationCounts, setRegistrationCounts] = useState<Record<string, number>>({});
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const todayKey = useMemo(() => {
     const now = new Date();
@@ -94,6 +98,27 @@ export default function TrainingCalendar({ showAll, onEditEvent, onDeleteEvent, 
       map[ev.event_date].push(ev);
     }
     return map;
+  }, [events]);
+
+  // Fetch registration counts for capacity display
+  useEffect(() => {
+    async function fetchCounts(): Promise<void> {
+      if (events.length === 0) return;
+      const eventIds = events.map((e) => e.id);
+      const { data } = await supabase
+        .from('training_registrations')
+        .select('event_id')
+        .in('event_id', eventIds)
+        .in('payment_status', ['paid', 'free']);
+      if (data) {
+        const counts: Record<string, number> = {};
+        for (const row of data) {
+          counts[row.event_id] = (counts[row.event_id] || 0) + 1;
+        }
+        setRegistrationCounts(counts);
+      }
+    }
+    fetchCounts();
   }, [events]);
 
   // Calendar grid data
@@ -384,23 +409,50 @@ export default function TrainingCalendar({ showAll, onEditEvent, onDeleteEvent, 
                           <p className="text-sm text-[var(--color-mist)] leading-relaxed">{ev.description}</p>
                         )}
 
-                        {ev.fee > 0 && (
-                          <div className="flex items-center gap-3 pt-1 border-t border-[var(--color-ocean)]/15">
-                            <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[var(--color-success)] pt-2">
-                              <DollarSign className="w-3.5 h-3.5" />
-                              {Number(ev.fee).toFixed(2)}
-                            </span>
-                            {ev.venmo_qr_url && (
-                              <a
-                                href={ev.venmo_qr_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-[var(--color-surf)] hover:underline flex items-center gap-1 pt-2"
-                              >
-                                <ExternalLink className="w-3 h-3" />
-                                Pay via Venmo
-                              </a>
+                        {/* Registration section */}
+                        {!isPast && (
+                          <div className="pt-2 border-t border-[var(--color-ocean)]/15">
+                            {ev.fee > 0 && (
+                              <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[var(--color-success)] mb-2">
+                                <DollarSign className="w-3.5 h-3.5" />
+                                {Number(ev.fee).toFixed(2)}
+                              </span>
                             )}
+                            {ev.max_capacity && (
+                              <p className="text-xs text-[var(--color-mist)] mb-2">
+                                {registrationCounts[ev.id] || 0} / {ev.max_capacity} spots filled
+                              </p>
+                            )}
+                            {(() => {
+                              const now = new Date();
+                              // Default deadline: 1 hour before event start (if no explicit deadline set)
+                              let effectiveDeadline: Date | null = null;
+                              if (ev.registration_deadline) {
+                                effectiveDeadline = new Date(ev.registration_deadline);
+                              } else if (ev.start_time) {
+                                const [h, m] = ev.start_time.split(':').map(Number);
+                                effectiveDeadline = new Date(`${ev.event_date}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`);
+                                effectiveDeadline.setHours(effectiveDeadline.getHours() - 1);
+                              }
+                              const deadlinePassed = effectiveDeadline && effectiveDeadline < now;
+                              const isFull = ev.max_capacity && (registrationCounts[ev.id] || 0) >= ev.max_capacity;
+                              if (deadlinePassed) return <p className="text-xs text-[var(--color-wave)] italic">Registration closed</p>;
+                              if (isFull) return <p className="text-xs text-[var(--color-wave)] italic">Class is full</p>;
+                              return (
+                                <button
+                                  onClick={() => setRegisterEvent(ev)}
+                                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all hover:scale-105"
+                                  style={{
+                                    backgroundColor: 'color-mix(in srgb, var(--color-gold) 20%, transparent)',
+                                    color: 'var(--color-gold)',
+                                    border: '1px solid color-mix(in srgb, var(--color-gold) 35%, transparent)',
+                                  }}
+                                >
+                                  <UserPlus className="w-3.5 h-3.5" />
+                                  {ev.fee > 0 ? 'Register & Pay' : 'Register'}
+                                </button>
+                              );
+                            })()}
                           </div>
                         )}
 
@@ -437,6 +489,35 @@ export default function TrainingCalendar({ showAll, onEditEvent, onDeleteEvent, 
                 </p>
               )}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Registration modal */}
+      <AnimatePresence>
+        {registerEvent && (
+          <RegistrationModal
+            event={registerEvent}
+            onClose={() => setRegisterEvent(null)}
+            onSuccess={() => {
+              setRegisterEvent(null);
+              setRegistrationSuccess(true);
+              setTimeout(() => setRegistrationSuccess(false), 8000);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Success banner */}
+      <AnimatePresence>
+        {registrationSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mt-4 p-4 rounded-xl bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 text-[var(--color-success)] text-sm text-center"
+          >
+            Registration complete! Check your email for confirmation and class details.
           </motion.div>
         )}
       </AnimatePresence>
