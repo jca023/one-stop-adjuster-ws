@@ -83,7 +83,7 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({
           from: Deno.env.get('RESEND_FROM_EMAIL') || 'OSA Website <onboarding@resend.dev>',
-          to: ['info@one-stop-adjuster.com'],
+          to: ['Stripe-OSA@johnnyweb.com'],
           subject,
           html: htmlBody,
         }),

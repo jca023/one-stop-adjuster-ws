@@ -270,7 +270,7 @@ async function sendConfirmationEmails(
     headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from: fromEmail,
-      to: ['info@one-stop-adjuster.com'],
+      to: ['Stripe-OSA@johnnyweb.com'],
       subject: `New registration: ${reg.name} for ${event.title}`,
       html: `
         <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto">

@@ -106,7 +106,7 @@ Deno.serve(async (req: Request) => {
           headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             from: fromEmail,
-            to: ['info@one-stop-adjuster.com'],
+            to: ['Stripe-OSA@johnnyweb.com'],
             subject: `New registration: ${reg.name} for ${trainingEvent.title}`,
             html: buildToddEmail(reg, trainingEvent.title, eventDate, amount, capacityStr),
           }),
