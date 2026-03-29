@@ -50,7 +50,7 @@ export default function Footer(): React.JSX.Element {
       <div className="container py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
           {/* Brand */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 overflow-visible">
             <motion.div
               className="mb-6"
               initial={{ opacity: 0, y: 20 }}

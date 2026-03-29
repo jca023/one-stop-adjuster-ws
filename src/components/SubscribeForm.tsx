@@ -43,22 +43,22 @@ export default function SubscribeForm({ compact }: SubscribeFormProps): React.JS
   }
 
   return (
-    <form onSubmit={handleSubmit} className={`flex ${compact ? 'flex-row gap-2' : 'flex-col sm:flex-row gap-3'}`}>
+    <form onSubmit={handleSubmit} className={`flex items-stretch ${compact ? 'flex-row gap-2' : 'flex-col sm:flex-row gap-3'}`}>
       <div className="relative flex-1">
-        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-wave)]" />
+        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-wave)] pointer-events-none" />
         <input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
-          className={`w-full pl-10 pr-4 ${compact ? 'py-2 text-sm' : 'py-2.5 text-sm'} rounded-lg bg-[var(--color-abyss)] border border-[var(--color-wave)]/20 text-[var(--color-pearl)] placeholder-[var(--color-wave)] focus:outline-none focus:border-[var(--color-gold)]/50 transition-colors`}
+          className={`w-full h-full pl-10 pr-4 ${compact ? 'py-2.5 text-sm' : 'py-2.5 text-sm'} rounded-lg bg-[var(--color-abyss)] border border-[var(--color-wave)]/20 text-[var(--color-pearl)] placeholder-[var(--color-wave)] focus:outline-none focus:border-[var(--color-gold)]/50 transition-colors`}
         />
       </div>
       <button
         type="submit"
         disabled={loading}
-        className={`btn-primary ${compact ? 'px-4 py-2 text-sm' : 'px-6 py-2.5 text-sm'} whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed`}
+        className={`btn-primary ${compact ? 'px-5 py-2.5 text-sm' : 'px-6 py-2.5 text-sm'} whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Subscribe'}
       </button>
