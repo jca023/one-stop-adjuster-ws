@@ -18,9 +18,9 @@ export default function SubscribeForm({ compact }: SubscribeFormProps): React.JS
     setLoading(true);
     setError('');
 
-    const { error: err } = await supabase
-      .from('subscribers')
-      .upsert({ email: email.trim().toLowerCase() }, { onConflict: 'email' });
+    const { error: err } = await supabase.functions.invoke('submit-subscribe', {
+      body: { email: email.trim().toLowerCase() },
+    });
 
     if (err) {
       setError('Something went wrong. Please try again.');
